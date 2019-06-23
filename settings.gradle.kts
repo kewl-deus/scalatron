@@ -13,3 +13,6 @@ include("BotWar")
 include("Scalatron")
 include("ScalatronCLI")
 include("ScalatronCore")
+include("ScalaMarkdown")
+
+include("ReferenceBot")

@@ -41,8 +41,6 @@ subprojects {
 project(":ScalatronCore") {
 
 	dependencies {
-		//"implementation"("com.typesafe.akka:akka-actor:2.0")
-		//"implementation"("com.typesafe.akka:akka-actor_2.10:2.1.4")
 		"implementation"("com.typesafe.akka:akka-actor_2.11:2.3.16")
 	}
 }
@@ -58,7 +56,7 @@ project(":BotWar") {
 project(":Scalatron") {
 
 	dependencies {
-		"implementation"(project(":ScalatronCore"))
+
 		"implementation"("com.typesafe.akka:akka-actor_2.11:2.3.16")
 		"implementation"("org.eclipse.jetty.aggregate:jetty-webapp:7.6.2.v20120308")
 		"implementation"("org.eclipse.jgit:org.eclipse.jgit:1.3.0.201202151440-r")
@@ -71,13 +69,12 @@ project(":Scalatron") {
 
 		"testImplementation"("org.scalatest:scalatest_2.12:3.0.5")
 		"testImplementation"("org.testng:testng:6.5.1")
-		//"testImplementation"("org.specs2:specs2_2.11:2.4.16")
-		//"testImplementation"("org.specs2:specs2_2.11:2.4.16-scalaz-7.0.6")
 		"testImplementation"("org.specs2:specs2_2.11:3.7")
 
-		// https://mvnrepository.com/artifact/org.specs2/specs2
-		//testCompile group: 'org.specs2', name: 'specs2_2.11', version: '2.4.16-scalaz-7.0.6'
-
+		"implementation"(project(":ScalatronCore"))
+		"implementation"(project(":BotWar"))
+		
+		"implementation"(project(":ReferenceBot"))
 	}
 }
 

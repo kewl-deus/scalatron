@@ -39,7 +39,7 @@ object Main {
         val argMap = args.grouped(2).filter(_.length==2).map(a => (a(0),a(1))).toMap    // Map["-key" -> "value"]
 
         // find out if we should provide verbose output
-        val verbose = (argMap.get("-verbose").getOrElse("no") == "yes")
+        val verbose = true //(argMap.get("-verbose").getOrElse("no") == "yes")
 
 
         // prepare the Akka actor system to be used by the various servers of the application
@@ -50,14 +50,14 @@ object Main {
         scalatron.start()
 
         // prepare (and start) the web server - eventually this should also use the Akka actorSystem (e.g., Spray?)
-        val webServer = WebServer(actorSystem, scalatron, argMap, verbose)
-        webServer.start()
+        //val webServer = WebServer(actorSystem, scalatron, argMap, verbose)
+        //webServer.start()
 
         // pass control to the tournament game loop - runs either forever or for some rounds ("-rounds" cmdline arg)
         scalatron.run(argMap)
 
         // shut down the web server
-        webServer.stop()
+        //webServer.stop()
 
         // shut down the Scalatron background services (e.g. compile service)
         scalatron.shutdown()

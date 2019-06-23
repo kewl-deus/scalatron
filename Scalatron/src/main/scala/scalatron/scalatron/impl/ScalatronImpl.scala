@@ -258,8 +258,9 @@ case class ScalatronImpl(
     var pluginCollection = PluginCollection(pluginBaseDirectoryPath, game.gameSpecificPackagePath, verbose)
 
     def freshEntityControllers = {
-        pluginCollection = pluginCollection.incrementalRescan // or: fullRescan
-        EntityControllerImpl.fromPlugins(pluginCollection.plugins)(executionContextForUntrustedCode)
+        //pluginCollection = pluginCollection.incrementalRescan // or: fullRescan
+        //EntityControllerImpl.fromPlugins(pluginCollection.plugins)(executionContextForUntrustedCode)
+        List(new EntityControllerImpl("ReferenceBot", new bots.reference.ControlFunctionFactory().create) : EntityController)
     }
 
     def postStepCallback(mostRecentState: UntypedState) { tournamentState.updateMostRecentState(mostRecentState) }
