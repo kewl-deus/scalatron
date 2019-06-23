@@ -18,6 +18,7 @@ import akka.routing.SmallestMailboxRouter
 import scalatron.scalatron.api.ScalatronOutward
 import scalatron.core.Simulation.UntypedState
 import scalatron.core._
+import scalatron.main.Bots
 
 import scala.concurrent.ExecutionContext
 
@@ -260,7 +261,7 @@ case class ScalatronImpl(
     def freshEntityControllers = {
         //pluginCollection = pluginCollection.incrementalRescan // or: fullRescan
         //EntityControllerImpl.fromPlugins(pluginCollection.plugins)(executionContextForUntrustedCode)
-        List(new EntityControllerImpl("ReferenceBot", new bots.reference.ControlFunctionFactory().create) : EntityController)
+        Bots.controllers
     }
 
     def postStepCallback(mostRecentState: UntypedState) { tournamentState.updateMostRecentState(mostRecentState) }

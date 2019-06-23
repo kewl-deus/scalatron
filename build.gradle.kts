@@ -12,6 +12,8 @@ plugins {
 
 val scalaVersion: String by extra("2.11.8") //2.12.7
 
+val botProjects: List<String> by extra(listOf("DeepThought", "BreadcrumbBot", "KewlBot", "ReferenceBot", "Overmind", "ScourgeOfScala"))
+
 subprojects {
  
 	apply(plugin = "scala")
@@ -65,16 +67,26 @@ project(":Scalatron") {
 		"implementation"("com.sun.jersey:jersey-bundle:1.12")
 		"implementation"("javax.servlet:servlet-api:2.5")
 
+		//compiler
 		"implementation"("org.scala-lang:scala-compiler:$scalaVersion") //2.9.1
 
+		//test dependencies
 		"testImplementation"("org.scalatest:scalatest_2.12:3.0.5")
 		"testImplementation"("org.testng:testng:6.5.1")
 		"testImplementation"("org.specs2:specs2_2.11:3.7")
 
+		//project dependencies
 		"implementation"(project(":ScalatronCore"))
 		"implementation"(project(":BotWar"))
-		
+
+		//bots
 		"implementation"(project(":ReferenceBot"))
+		"implementation"(project(":KewlBot"))
+		"implementation"(project(":DeepThought"))
+		//"implementation"(project(":Overmind"))
+		//"implementation"(project(":ScourgeOfScala"))
+		//"implementation"(project(":BreadcrumbBot"))
+		"implementation"(project(":aibot"))
 	}
 }
 
@@ -82,5 +94,20 @@ project(":ScalatronCLI") {
 	dependencies {
 		"implementation"("org.apache.httpcomponents:httpclient:4.1.3")
 		"implementation"("org.scala-lang.modules:scala-parser-combinators_2.11:1.1.0")
+	}
+}
+
+
+
+project(":ReferenceBot") {
+	dependencies {
+		"implementation"(project(":ScalatronCore"))
+	}
+}
+
+configure(subprojects.filter { botProjects.contains(it.name) }) {
+	dependencies {
+		"testImplementation"("org.scalatest:scalatest_2.12:3.0.5")
+		"testImplementation"("org.specs2:specs2_2.11:3.7")
 	}
 }

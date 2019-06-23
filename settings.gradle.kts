@@ -15,4 +15,30 @@ include("ScalatronCLI")
 include("ScalatronCore")
 include("ScalaMarkdown")
 
+/*
+File("Bots").listFiles { file -> file.isDirectory }.forEach { dir ->
+ include(dir.name)
+ project(":${dir.name}").projectDir = dir
+}
+*/
+
+include("BreadcrumbBot")
+project(":BreadcrumbBot").projectDir = File("Bots/BreadcrumbBot")
+
+include("DeepThought")
+project(":DeepThought").projectDir = File("Bots/DeepThought")
+
+include("KewlBot")
+project(":KewlBot").projectDir = File("Bots/KewlBot")
+
+include("Overmind")
+project(":Overmind").projectDir = File("Bots/Overmind")
+
+include("ScourgeOfScala")
+project(":ScourgeOfScala").projectDir = File("Bots/ScourgeOfScala")
+
 include("ReferenceBot")
+project(":ReferenceBot").projectDir = File("Bots/ReferenceBot")
+
+include("aibot")
+project(":aibot").projectDir = File("Bots/aibot")
