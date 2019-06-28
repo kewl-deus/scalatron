@@ -97,7 +97,14 @@ project(":ScalatronCLI") {
 	}
 }
 
-
+/*
+configure(subprojects.filter { botProjects.contains(it.name) }) {
+	dependencies {
+		"testImplementation"("org.scalatest:scalatest_2.12:3.0.5")
+		"testImplementation"("org.specs2:specs2_2.11:3.7")
+	}
+}
+*/
 
 project(":ReferenceBot") {
 	dependencies {
@@ -105,9 +112,17 @@ project(":ReferenceBot") {
 	}
 }
 
-configure(subprojects.filter { botProjects.contains(it.name) }) {
-	dependencies {
-		"testImplementation"("org.scalatest:scalatest_2.12:3.0.5")
+project(":aibot") {
+
+	val dl4jVersion: String by extra("1.0.0-beta4")
+
+	dependencies{
+		"implementation"("org.deeplearning4j:scalnet_2.11:$dl4jVersion")
+		//"implementation"("org.deeplearning4j:deeplearning4j-core:$dl4jVersion")
+		"implementation"("org.nd4j:nd4j-native-platform:$dl4jVersion")
+		//"implementation"("org.nd4j:nd4j-cuda-10.1:$dl4jVersion")
+
+		//"testImplementation"("org.scalatest:scalatest_2.12:3.0.5")
 		"testImplementation"("org.specs2:specs2_2.11:3.7")
 	}
 }
