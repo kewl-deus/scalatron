@@ -4,6 +4,8 @@ import bots.framework.{CellCodes, Direction45}
 
 object Globals extends CellCodes {
 
+  type State = Seq[Double]
+
   val maxSteps = 15
   val obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg)
   val directions = Direction45.Right.to(Direction45.DownRight)

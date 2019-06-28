@@ -122,6 +122,9 @@ project(":aibot") {
 		"implementation"("org.nd4j:nd4j-native-platform:$dl4jVersion")
 		//"implementation"("org.nd4j:nd4j-cuda-10.1:$dl4jVersion")
 
+		//"implementation"("org.slf4j:slf4j-simple:1.7.25")
+		//"implementation"("org.slf4j:slf4j-api:1.7.25")
+
 		//"testImplementation"("org.scalatest:scalatest_2.12:3.0.5")
 		"testImplementation"("org.specs2:specs2_2.11:3.7")
 	}
