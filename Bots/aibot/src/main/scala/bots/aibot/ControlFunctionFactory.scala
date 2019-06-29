@@ -27,19 +27,23 @@ class ControlFunctionFactory {
 
 object Stats {
   private var roundNo = 0
+  private var roundBegin = 0L
   private var scoreRecord = Int.MinValue
 
   def inputAsIntOrElse(inputParams: Map[String, String], key: String, fallback: Int) = inputParams.get(key).map(_.toInt).getOrElse(fallback)
 
   def welcome(params: Map[String, String]) = {
-    roundNo = inputAsIntOrElse(params, "round", 0)
+    roundNo = inputAsIntOrElse(params, "round", 0) + 1
+    roundBegin = System.currentTimeMillis
   }
 
   def goodbye(params: Map[String, String]) = {
     val finalEnergy = inputAsIntOrElse(params, "energy", 0)
     if (finalEnergy > scoreRecord) scoreRecord = finalEnergy
 
-    println(s"Round($roundNo) Final energy: $finalEnergy | Record: $scoreRecord")
+    val elapsedTime = (System.currentTimeMillis - roundBegin) / 1000
+
+    println(s"Round($roundNo,${elapsedTime}s) Final energy: $finalEnergy | Record: $scoreRecord")
   }
 
 
