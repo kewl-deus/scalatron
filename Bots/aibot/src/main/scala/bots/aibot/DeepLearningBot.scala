@@ -21,29 +21,27 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
   private def performReaction = {
     //debugPrint(view)
 
-    //new round?
-    //if (this.time <= 1) agent.reset(this.energy)
-    agent.update(this.time, this.energy)
-
     val currentState = getState
     val nextMove = calcNextMove(currentState)
     this.move(nextMove)
 
+    val collisionDetected = this.collision
+    collisionDetected.foreach(_ => this.say("Bonk!"))
+
     //save state
-    agent.remember(currentState, nextMove, this.energy)
+    agent.remember(currentState, nextMove, this.time, this.energy, collisionDetected)
   }
 
   private def calcNextMove(state: State) = {
     val epsilon = 80 - this.time
 
+    //optimize: check for collision
+    //repeat until nextMove != last collision Move
+
     if (Random.nextInt(200) < epsilon){
       //random move
-      //val x = random.nextInt(3) - 1
-      //val y = random.nextInt(3) - 1
-      //this.move(XY(x, y))
       this.say("Random move")
       XY.fromDirection45(Random.nextInt(8))
-
     } else {
       //predicted move
       //this.say("Predicted move")
@@ -56,7 +54,7 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
     val obstacleSuspicions = viewAnalyzer.analyze
 
     val obstacleMatrix = obstacleSuspicions.map(obs => obs.obstacle match {
-      case Some(obstacle) => obstacleBitmap(obstacle, obstacleCodes) //relativeDistances(obstacle, obstacleCodes, maxSteps)
+      case Some(obstacle) => relativeDistances(obstacle, obstacleCodes, maxSteps) //obstacleBitmap(obstacle, obstacleCodes)
       case _ => obstacleCodes.map(_ => 0.doubleValue())
     })
 
@@ -74,4 +72,8 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
   private def debugPrint(view: View): Unit = {
     println(view.cells.grouped(31).mkString("\n"))
   }
+
+  def collision: Option[XY] = inputParams.get("collision").map(s => XY(s))
+
+  def drawLine(from: XY,to: XY,color: String) = append(s"DrawLine(from=$from,to=$to,color=$color)")
 }

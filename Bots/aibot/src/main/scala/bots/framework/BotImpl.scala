@@ -21,7 +21,7 @@ case class BotImpl(inputParams: Map[String, String]) extends MiniBot {
   private var debugOutput = ""                        // holds all "Log()" output
 
   /** Appends a new command to the command string; returns 'this' for fluent API. */
-  private def append(s: String) : Bot = { commands += (if(commands.isEmpty) s else "|" + s); this }
+  protected def append(s: String) : Bot = { commands += (if(commands.isEmpty) s else "|" + s); this }
 
   /** Renders commands and stateParams into a control function return string. */
   override def toString = {

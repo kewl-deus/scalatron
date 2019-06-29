@@ -20,38 +20,41 @@ import scala.util.Random
   */
 class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
-  private val learningRate = 0.0005
+  val learningRate = 0.0005
 
-  private val discountRate = 0.9
+  /** gamma */
+  val discountRate = 0.9
+
+  val collisionCost = -40
 
   private val model = createNetwork(directions, obstacleTypes)
 
   private val trainListeners = List(new PerformanceListener(1000))
 
-  private var replayMemory = new mutable.Queue[StateTransition]
+  private val replayMemory = new mutable.Queue[StateTransition]
 
-  private var lastMove: XY = XY.Zero
+  private var lastMove: Option[XY] = None
 
-  private var lastState: State = Nil
+  private var lastState: Option[State] = None
 
   private var stepCounter: Int = 0
 
   private var botEnergy: Int = 0
 
-  def reset(botEnergy: Int) = {
+  private def reset(botEnergy: Int) = {
     this.botEnergy = botEnergy
-    this.lastMove = XY.Zero
-    this.lastState = Nil
+    this.lastMove = None
+    this.lastState = None
   }
 
-  def update(stepCount: Int, botEnergy: Int): Boolean = {
-    val newRound = stepCount <= stepCounter
-    if (newRound) {
+  private def update(stepCount: Int, botEnergy: Int) = {
+    if (stepCount <= stepCounter) {
+      //new round
       reset(botEnergy)
       trainReplay
     }
+
     stepCounter = stepCount
-    newRound
   }
 
   private def createNetwork(directions: Int, obstacleTypes: Int) = {
@@ -71,7 +74,7 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
     model.add(Dense(name = "outputlayer", nOut = numOutputs, activation = Activation.SOFTMAX))
     model.compile(lossFunction = LossFunction.MSE, updater = Updater.ADAM)
 
-    println(model.toJson)
+    //println(model.toJson)
 
     //return value
     model
@@ -104,18 +107,22 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
     replayMemory.enqueue(stateTransition)
   }
 
-  def remember(state: State, move: XY, botEnergy: Int) {
-    val reward = calcReward(botEnergy)
+  def remember(state: State, move: XY, stepCount: Int, botEnergy: Int, collision: Option[XY]) {
+    this.update(stepCount, botEnergy)
 
-    if (reward != 0) println(s"REWARD: $reward")
 
-    if (!lastState.isEmpty) {
-      val transition = StateTransition(lastState, move, state, reward)
+    val reward = calcReward(botEnergy) + collision.map(_ => collisionCost).getOrElse(0)
+
+    //if (collision.isDefined) println(s"Collision: $collision")
+    if (reward > 0) println(s"Step($stepCounter) REWARD: $reward")
+
+    if (lastState.isDefined) {
+      val transition = StateTransition(lastState.get, move, state, reward)
       remember(transition)
       train(transition)
     }
-    lastState = state
-    lastMove = move
+    lastState = Some(state)
+    lastMove = Some(move)
   }
 
   private def train(stateTransition: StateTransition) {
@@ -155,9 +162,8 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
     val trainData = minibatch.map(toTrainData).asJava
     val trainDataIter = new ListDataSetIterator[DataSet](trainData, 10)
-    model.fit(trainDataIter, 10, trainListeners)
+    model.fit(trainDataIter, 1, trainListeners)
 
-    println(model.toJson)
-
+    //println(model.toJson)
   }
 }
