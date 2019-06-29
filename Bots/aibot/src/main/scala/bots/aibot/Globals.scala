@@ -22,4 +22,19 @@ object Globals extends CellCodes {
     case Direction45.Down => "Down"
     case Direction45.DownRight => "DownRight"
   }
+
+  def nameCellCode(cellCode: Char): String = cellCode match {
+    case MasterBot => "MasterBot"
+    case SlaveBot => "SlaveBot"
+    case OccludedCell => "OccludedCell"
+    case EmptyCell => "EmptyCell"
+    case Wall => "Wall"
+    case EnemyBot => "EnemyBot"
+    case EnemySlave => "EnemySlave"
+    case Zugar => "Zugar"
+    case Toxifera => "Toxifera"
+    case Fluppet => "Fluppet"
+    case Snorg => "Snorg"
+    case _ => "Unkown"
+  }
 }
