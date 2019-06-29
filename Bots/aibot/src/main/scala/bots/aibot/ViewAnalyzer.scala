@@ -6,8 +6,6 @@ class ViewAnalyzer(view: View) extends CellCodes {
 
 
   def analyze = {
-    //val positions = List(XY.UpLeft, XY.Up, XY.RightUp, XY.Right, XY.DownRight, XY.Down, XY.LeftDown, XY.Left)
-    //val directions = Direction45.Right.to(Direction45.DownRight)
 
     val positions = Globals.directions.map(dir => XY.fromDirection45(dir))
 
