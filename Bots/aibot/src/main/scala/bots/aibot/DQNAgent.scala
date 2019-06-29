@@ -12,7 +12,7 @@ import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction
 
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 import scala.util.Random
 
 /**
@@ -111,7 +111,7 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
     //if (collision.isDefined) println(s"Collision: $collision")
     if (reward > 0) println(s"Step($stepCount) REWARD: $reward")
 
-    if (lastState.isDefined) {
+    if (reward != 0 && lastState.isDefined) {
       val transition = StateTransition(lastState.get, move, state, reward)
       remember(transition)
       train(transition)
@@ -132,9 +132,11 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
     }
   }
 
-  private def toTrainData(stateTransition: StateTransition) = {
+  private def toTrainData(stateTransition: StateTransition) = toTrainDataMarkov(stateTransition)
+
+  private def toTrainDataMarkov(stateTransition: StateTransition) = {
     val amax = model.predict(reshape(stateTransition.newState)).amaxNumber().doubleValue()
-    val targetValue = stateTransition.reward + discountRate * amax
+    val targetValue = (stateTransition.reward.doubleValue() / 1000d) + discountRate * amax
 
     val target = model.predict(reshape(stateTransition.state))
     val index = stateTransition.action.toDirection45
@@ -142,6 +144,36 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
     new DataSet(reshape(stateTransition.state), target)
   }
+
+
+  private def toTrainDataSimple(stateTransition: StateTransition) = {
+    val target = model.predict(reshape(stateTransition.state))
+
+    if (stateTransition.reward != 0) {
+      val index = stateTransition.action.toDirection45
+
+      val targetValue = target.getDouble(0L, index.longValue())
+      val reward: Double = stateTransition.reward.doubleValue() / 1000d
+
+      target.put(0, index, targetValue + reward)
+    }
+
+    new DataSet(reshape(stateTransition.state), target)
+
+  }
+
+  /*
+    private def toTrainDataSimple(stateTransition: StateTransition) = {
+    //val predictedTarget = model.predict(reshape(stateTransition.state))
+
+    val reward: Double = if (stateTransition.reward == 0) 1d else stateTransition.reward.doubleValue()
+    val index = stateTransition.action.toDirection45
+    val target = Globals.directions.map(dir => if (dir == index) reward else 0)
+    val labels = Nd4j.create(target.toArray, Array(1, target.length))
+    new DataSet(reshape(stateTransition.state), labels)
+
+  }
+   */
 
   private def trainReplay {
     if (replayMemory.size <= 0) return
