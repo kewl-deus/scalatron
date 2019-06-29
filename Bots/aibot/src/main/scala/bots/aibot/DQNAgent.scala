@@ -27,6 +27,7 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
   val collisionCost = -40
 
+
   private val model = createNetwork(directions, obstacleTypes)
 
   private val trainListeners = List(new PerformanceListener(1000))
@@ -37,24 +38,20 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
   private var lastState: Option[State] = None
 
-  private var stepCounter: Int = 0
-
   private var botEnergy: Int = 0
 
-  private def reset(botEnergy: Int) = {
-    this.botEnergy = botEnergy
+  private def reset = {
+    this.botEnergy = 1000
     this.lastMove = None
     this.lastState = None
   }
 
-  private def update(stepCount: Int, botEnergy: Int) = {
-    if (stepCount <= stepCounter) {
-      //new round
-      reset(botEnergy)
-      trainReplay
-    }
+  def newRound(roundNo: Int, maxStepCount: Int): Unit = {
+    reset
+  }
 
-    stepCounter = stepCount
+  def endRound = {
+    trainReplay
   }
 
   private def createNetwork(directions: Int, obstacleTypes: Int) = {
@@ -108,13 +105,11 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
   }
 
   def remember(state: State, move: XY, stepCount: Int, botEnergy: Int, collision: Option[XY]) {
-    this.update(stepCount, botEnergy)
-
 
     val reward = calcReward(botEnergy) + collision.map(_ => collisionCost).getOrElse(0)
 
     //if (collision.isDefined) println(s"Collision: $collision")
-    if (reward > 0) println(s"Step($stepCounter) REWARD: $reward")
+    if (reward > 0) println(s"Step($stepCount) REWARD: $reward")
 
     if (lastState.isDefined) {
       val transition = StateTransition(lastState.get, move, state, reward)
@@ -142,7 +137,7 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
     val targetValue = stateTransition.reward + discountRate * amax
 
     val target = model.predict(reshape(stateTransition.state))
-    val index = stateTransition.move.toDirection45
+    val index = stateTransition.action.toDirection45
     target.put(0, index, targetValue)
 
     new DataSet(reshape(stateTransition.state), target)

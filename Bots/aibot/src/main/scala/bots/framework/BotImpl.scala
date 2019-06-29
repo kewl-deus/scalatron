@@ -7,10 +7,10 @@ case class BotImpl(inputParams: Map[String, String]) extends MiniBot {
   def inputAsIntOrElse(key: String, fallback: Int) = inputParams.get(key).map(_.toInt).getOrElse(fallback)
   def inputAsXYOrElse(key: String, fallback: XY) = inputParams.get(key).map(s => XY(s)).getOrElse(fallback)
 
-  val view = View(inputParams("view"))
-  val energy = inputParams("energy").toInt
-  val time = inputParams("time").toInt
-  val generation = inputParams("generation").toInt
+  lazy val view = View(inputParams("view"))
+  lazy val energy = inputParams("energy").toInt
+  lazy val time = inputParams("time").toInt
+  lazy val generation = inputParams("generation").toInt
   def offsetToMaster = inputAsXYOrElse("master", XY.Zero)
 
 

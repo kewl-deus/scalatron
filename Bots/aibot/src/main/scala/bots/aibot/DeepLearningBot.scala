@@ -13,7 +13,30 @@ import scala.util.Random
   */
 class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) extends BotImpl(inputParams) {
 
-  def react = {
+  /**
+    * Welcome(name=String,apocalypse=int,round=int,maxslaves=int)
+    */
+  def welcome: String = {
+    val round = inputAsIntOrElse("round", 0)
+    val maxStepCount = inputAsIntOrElse("apocalypse", 0)
+    agent.newRound(round, maxStepCount)
+    Globals.Noop
+  }
+
+  /**
+    * Goodbye(energy=int)
+    */
+  def goodbye: String = {
+    val finalEnergy = inputAsIntOrElse("energy", 0)
+    agent.endRound
+    Globals.Noop
+  }
+
+
+  /**
+    * React(generation=int,name=string,time=int,view=string,energy=string,master=int:int,collision=int:int,slaves=int)
+    */
+  def react: String = {
     this.performReaction
     this.toString
   }
