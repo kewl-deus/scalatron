@@ -20,6 +20,6 @@ object Path {
 
   def apply(positions: Seq[XY]): Path = new Path(positions)
 
-  def apply(position: XY, steps: Int) = new Path(Stream.iterate(position, 15)(streamPos => streamPos + position))
+  def apply(position: XY, steps: Int) = new Path(Stream.iterate(position, steps)(streamPos => streamPos + position))
 
 }

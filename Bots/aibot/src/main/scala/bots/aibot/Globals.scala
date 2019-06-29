@@ -8,7 +8,9 @@ object Globals extends CellCodes {
 
   val Noop = ""
 
+  /** max amount of steps from bot position (0,0) to edge of view */
   val maxSteps = 15
+
   val obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg)
   val directions = Direction45.Right.to(Direction45.DownRight)
 

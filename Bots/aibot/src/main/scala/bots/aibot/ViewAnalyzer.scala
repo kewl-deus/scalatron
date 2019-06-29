@@ -4,20 +4,20 @@ import bots.framework.{CellCodes, View, XY}
 
 class ViewAnalyzer(view: View) extends CellCodes {
 
+  /**
+    * @return CellVector for each of the 45-degree directions
+    */
   def analyze = {
 
     val positions = Globals.directions.map(dir => XY.fromDirection45(dir))
 
-    val pathsToEdges: Seq[Path] = positions.map(pos => Path(pos, 15))
+    val pathsToEdges: Seq[Path] = positions.map(pos => Path(pos, Globals.maxSteps))
 
-    pathsToEdges.map(findFirstObstacle).zipWithIndex.map{case (optObs, direction) => ObstacleSuspicion(direction, optObs)}
+    pathsToEdges.map(readCells).zipWithIndex.map{case (cells, direction) => CellVector(direction, cells)}
   }
 
-  def listObstacles(path: Path) = path(view)
+  def readCells(path: Path) = path(view)
     .zip(path.positions)
-    .map{case (cell, pos) => Obstacle(cell, pos)}
+    .map{case (cell, pos) => Cell(cell, pos)}
 
-  def findFirstObstacle(path: Path) = listObstacles(path).find(ob => ob.cell != EmptyCell).toSeq
-
-  def filterObstacles(path: Path) = listObstacles(path).filter(ob => ob.cell != EmptyCell)
 }
