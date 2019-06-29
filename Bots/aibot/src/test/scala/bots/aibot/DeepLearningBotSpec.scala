@@ -182,16 +182,16 @@ class DeepLearningBotSpec extends Specification with CellCodes {
 
       val inputParams = Map("view" -> view.cells)
       val obstacleCodes = List('a', 'b', 'c')
-      val bot = new DeepLearningBot(inputParams, obstacleCodes, new DQNAgent(Globals.directions.size, obstacleCodes.size))
+      val bot = new DeepLearningBot(inputParams, obstacleCodes, Strategies.obstacleBitmap, new DQNAgent(Globals.directions.size, obstacleCodes.size))
 
-      val bitmap = bot.getState(bot.obstacleBitmap)
+      val bitmap = bot.getState
 
-      bitmap.size mustEqual(Globals.directions.size * obstacleCodes.size)
+      bitmap.size mustEqual (Globals.directions.size * obstacleCodes.size)
 
       val dirIndex = Direction45.UpLeft
       val obstacleIndex = obstacleCodes.size * dirIndex
 
-      bitmap(obstacleIndex) mustEqual(1.0d)
+      bitmap(obstacleIndex) mustEqual (1.0d)
 
     }
   }
@@ -240,17 +240,17 @@ class DeepLearningBotSpec extends Specification with CellCodes {
 
       val inputParams = Map("view" -> view.cells)
       val obstacleCodes = List('a', 'b', 'c')
-      val bot = new DeepLearningBot(inputParams, obstacleCodes, new DQNAgent(Globals.directions.size, obstacleCodes.size))
+      val bot = new DeepLearningBot(inputParams, obstacleCodes, Strategies.relativeDistances, new DQNAgent(Globals.directions.size, obstacleCodes.size))
 
-      val relDistanceVector = bot.getState(bot.relativeDistances)
+      val relDistanceVector = bot.getState
 
-      relDistanceVector.size mustEqual(Globals.directions.size * obstacleCodes.size)
+      relDistanceVector.size mustEqual (Globals.directions.size * obstacleCodes.size)
 
       val dirIndex = Direction45.UpLeft
       val obstacleIndex = obstacleCodes.size * dirIndex
 
       val stepsToObstacle = 2
-      relDistanceVector(obstacleIndex) mustEqual(stepsToObstacle.doubleValue() / Globals.maxSteps.doubleValue())
+      relDistanceVector(obstacleIndex) mustEqual (stepsToObstacle.doubleValue() / Globals.maxSteps.doubleValue())
 
     }
   }
@@ -299,19 +299,19 @@ class DeepLearningBotSpec extends Specification with CellCodes {
 
       val inputParams = Map("view" -> view.cells)
       val obstacleCodes = List('a', 'b', 'c')
-      val bot = new DeepLearningBot(inputParams, obstacleCodes, new DQNAgent(Globals.directions.size, obstacleCodes.size))
+      val bot = new DeepLearningBot(inputParams, obstacleCodes, Strategies.relativeDensity, new DQNAgent(Globals.directions.size, obstacleCodes.size))
 
-      val relDensityVector = bot.getState(bot.relativeDensity)
+      val relDensityVector = bot.getState
 
-      relDensityVector.size mustEqual(Globals.directions.size * obstacleCodes.size)
+      relDensityVector.size mustEqual (Globals.directions.size * obstacleCodes.size)
 
       val upleftA = obstacleCodes.size * Direction45.UpLeft
       val upleftB = obstacleCodes.size * Direction45.UpLeft + 1
       val upleftC = obstacleCodes.size * Direction45.UpLeft + 2
 
-      relDensityVector(upleftA) mustEqual(4d / Globals.maxSteps.doubleValue())
-      relDensityVector(upleftB) mustEqual(2d / Globals.maxSteps.doubleValue())
-      relDensityVector(upleftB) mustEqual(1d / Globals.maxSteps.doubleValue())
+      relDensityVector(upleftA) mustEqual (4d / Globals.maxSteps.doubleValue())
+      relDensityVector(upleftB) mustEqual (2d / Globals.maxSteps.doubleValue())
+      relDensityVector(upleftC) mustEqual (1d / Globals.maxSteps.doubleValue())
 
     }
   }

@@ -2,6 +2,7 @@ package bots.aibot
 
 import bots.framework._
 import Globals.State
+import bots.aibot.Strategies.ObstacleStateMapper
 
 import scala.util.Random
 
@@ -11,7 +12,7 @@ import scala.util.Random
   * @param inputParams
   * @param agent
   */
-class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char], agent: DQNAgent) extends BotImpl(inputParams) {
+class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char], strategy: ObstacleStateMapper, agent: DQNAgent) extends BotImpl(inputParams) {
 
   /**
     * Welcome(name=String,apocalypse=int,round=int,maxslaves=int)
@@ -44,7 +45,7 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
   private def performReaction = {
     //debugPrint(view)
 
-    val currentState = getState(relativeDistances)
+    val currentState = getState
     val nextMove = calcNextMove(currentState)
     this.move(nextMove)
 
@@ -72,68 +73,18 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
     }
   }
 
-
-  /**
-    *
-    * @param obstacleCodes       chars defining obstacles
-    * @param obstacleStateMapper converts obstacle to state
-    * @return
-    */
-  def getState(obstacleStateMapper: (Seq[Cell], List[Char]) => State): State = {
+  def getState: State = {
     val viewAnalyzer = new ViewAnalyzer(view)
     val viewAxes = viewAnalyzer.analyze
 
     val obstacleMatrix = viewAxes.map(axis => axis.cells match {
-      case cells: Seq[Cell] if (!cells.isEmpty) => obstacleStateMapper(cells, obstacleCodes)
+      case cells: Seq[Cell] if (!cells.isEmpty) => this.strategy(cells, obstacleCodes)
       case _ => obstacleCodes.map(_ => 0d)
     })
 
     obstacleMatrix.flatten
   }
 
-  /**
-    * Converts cells into bitmap vector of obstacleCodes.
-    * Bitmap vector length = obstacleCodes count.
-    * If cell with obstacleCode exists, bitmap index for obstacleCode is marked with 1.
-    *
-    * @param cells
-    * @param obstacleCodes
-    * @return
-    */
-  def obstacleBitmap(cells: Seq[Cell], obstacleCodes: List[Char]): State = {
-    obstacleCodes.map(code => if (cells.exists(o => o.cellCode == code)) 1d else 0d)
-  }
-
-  /**
-    * Converts cells to vector with relative distances.
-    * State vector length = obstacleCodes count.
-    * State value represents the relative distance to the first cell containing the given obstacle code.
-    * Relative distance is number of steps to cell in relation to length of view-axis (= number of cells)
-    *
-    * @param cells
-    * @param obstacleCodes
-    * @return
-    */
-  def relativeDistances(cells: Seq[Cell], obstacleCodes: List[Char]): State = {
-    val maxSteps = cells.size.doubleValue()
-    obstacleCodes.map{code =>
-      val firstObstacle = cells.find(ob => ob.cellCode == code)
-      firstObstacle match {
-        case Some(obstacle) => obstacle.position.stepCount.doubleValue() / maxSteps
-        case _ => 0d
-      }
-    }
-  }
-
-  def relativeDensity(cells: Seq[Cell], obstacleCodes: List[Char]): State = {
-    val cellCount = cells.size.doubleValue()
-    obstacleCodes.map{code =>
-      val obstacleCells = cells.filter(ob => ob.cellCode == code)
-      obstacleCells.size.doubleValue() / cellCount.doubleValue()
-    }
-  }
-
-  //TODO relativeDensityWithWeightedDistance
 
   private def debugPrint(view: View): Unit = {
     println(view.cells.grouped(31).mkString("\n"))

@@ -1,5 +1,6 @@
 package bots.aibot
 
+import bots.aibot.Strategies.ObstacleStateMapper
 import bots.framework.{BotImpl, CommandParser}
 import ch.qos.logback.classic.Level
 import org.slf4j.LoggerFactory
@@ -7,18 +8,19 @@ import org.slf4j.LoggerFactory
 class ControlFunctionFactory {
 
   val botBackend = DeepLearningBotBackend
+  val strategy: ObstacleStateMapper = Strategies.relativeDensity
 
   def create = (input: String) => {
     val (opcode, params) = CommandParser(input)
     opcode match {
       case "Welcome" => {
         Stats.welcome(params)
-        new DeepLearningBot(params, Globals.obstacleCodes,botBackend).welcome
+        new DeepLearningBot(params, Globals.obstacleCodes, strategy, botBackend).welcome
       }
-      case "React" => new DeepLearningBot(params, Globals.obstacleCodes, botBackend).react
+      case "React" => new DeepLearningBot(params, Globals.obstacleCodes, strategy, botBackend).react
       case "Goodbye" => {
         Stats.goodbye(params)
-        new DeepLearningBot(params, Globals.obstacleCodes,botBackend).goodbye
+        new DeepLearningBot(params, Globals.obstacleCodes, strategy, botBackend).goodbye
       }
       case _ => Globals.Noop
     }

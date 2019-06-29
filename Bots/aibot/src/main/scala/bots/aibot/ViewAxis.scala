@@ -9,6 +9,6 @@ case class ViewAxis(direction45: Int, cells: Seq[Cell]) {
 
   override def toString: String = {
     val dirName = Globals.nameDirection45(direction45)
-    s"CellVector($dirName, $cells)"
+    s"ViewAxis($dirName, $cells)"
   }
 }
