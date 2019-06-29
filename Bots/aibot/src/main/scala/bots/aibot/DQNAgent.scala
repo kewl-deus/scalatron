@@ -1,5 +1,7 @@
 package bots.aibot
 
+import java.io.File
+
 import bots.aibot.Globals.State
 import bots.framework.XY
 import org.deeplearning4j.datasets.iterator.impl.ListDataSetIterator
@@ -27,6 +29,10 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
   val rewardAdjustmentBase = 1000
 
+  /** minimum absolute reward for storing transition in replayMemory */
+  val memoryRewardThreshold = 20
+
+  /** amount of energy loss for a collision */
   val collisionCost = -40
 
   private val model = createNetwork(directions, obstacleTypes)
@@ -35,6 +41,8 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
   private val replayMemory = new mutable.Queue[StateTransition]
 
+  private val shortTermMemory = new mutable.Queue[StateTransition]
+
   private var lastMove: Option[XY] = None
 
   private var lastState: Option[State] = None
@@ -42,6 +50,8 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
   private var botEnergy: Int = 0
 
   private var collisionCount: Int = 0
+
+  private var round: Int = 0
 
   private def reset = {
     this.botEnergy = 1000
@@ -53,11 +63,21 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
   def newRound(roundNo: Int, maxStepCount: Int): Unit = {
     reset
+    this.round = roundNo
   }
 
   def endRound = {
     println(s"Collision count: $collisionCount")
+    println(s"Replay memory size: ${replayMemory.size}")
     trainReplay
+
+    if (round % 20 == 0){
+      val timestamp = System.currentTimeMillis
+      val modelFile = new File(System.getProperty("java.io.tmpdir"), s"scalatron-dqn-network-$timestamp-$round.zip")
+      println(s"Saving model: $modelFile")
+      model.getNetwork.save(modelFile, true)
+    }
+
   }
 
   private def createNetwork(directions: Int, obstacleTypes: Int) = {
@@ -107,8 +127,24 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
   }
 
   private def remember(stateTransition: StateTransition) {
-    replayMemory.enqueue(stateTransition)
+    if (accept(stateTransition)) replayMemory.enqueue(stateTransition)
   }
+
+  private def accept(stateTransition: StateTransition): Boolean = Math.abs(stateTransition.reward) >= memoryRewardThreshold
+
+  private def transferShortTermMemory(reward: Int) {
+    val stepReward: Float = reward.floatValue() / shortTermMemory.size
+
+    var partialReward: Int = 0
+    while (!shortTermMemory.isEmpty) {
+      val t = shortTermMemory.dequeue()
+      partialReward += Math.round(stepReward)
+      val rewardedTransition = new StateTransition(t.state, t.action, t.newState, partialReward)
+      remember(rewardedTransition)
+      train(rewardedTransition)
+    }
+  }
+
 
   def remember(state: State, move: XY, stepCount: Int, botEnergy: Int, collision: Option[XY]) {
     val reward = calcReward(botEnergy) + collision.map(_ => collisionCost).getOrElse(0)
@@ -121,16 +157,23 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
       println(s"Step($stepCount) REWARD: $reward")
     }
 
-    if (reward != 0 && lastState.isDefined) {
+    if (lastState.isDefined) {
       val transition = StateTransition(lastState.get, move, state, reward)
-      remember(transition)
-      train(transition)
+      shortTermMemory.enqueue(transition)
+
+      if (reward != 0) {
+        transferShortTermMemory(reward)
+      }
+
     }
     lastState = Some(state)
     lastMove = Some(move)
   }
 
+
   private def train(stateTransition: StateTransition) {
+    //if (!accept(stateTransition)) return
+
     val trainData = toTrainData(stateTransition)
     try {
       model.fit(trainData, 1, trainListeners)
@@ -169,7 +212,6 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
     }
 
     new DataSet(reshape(stateTransition.state), target)
-
   }
 
   private def toTrainDataVerySimple(stateTransition: StateTransition) = {
@@ -177,11 +219,10 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
     val target = Globals.directions.map(dir => if (dir == index) stateTransition.reward.doubleValue() / rewardAdjustmentBase.doubleValue() else 0d)
     val labels = Nd4j.create(target.toArray, Array(1, target.length))
     new DataSet(reshape(stateTransition.state), labels)
-
   }
 
   private def trainReplay {
-    if (replayMemory.size <= 0) return
+    if (replayMemory.size < 1) return
 
     val minibatch = replayMemory.size match {
       case x: Int if (x > 1000) => Random.shuffle(replayMemory).take(1000)
