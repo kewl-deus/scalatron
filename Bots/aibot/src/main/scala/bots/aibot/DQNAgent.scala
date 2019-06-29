@@ -12,7 +12,7 @@ import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction
 
-import scala.collection.{immutable, mutable}
+import scala.collection.mutable
 import scala.util.Random
 
 /**
@@ -25,8 +25,9 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
   /** gamma */
   val discountRate = 0.9
 
-  val collisionCost = -40
+  val rewardAdjustmentBase = 1000
 
+  val collisionCost = -40
 
   private val model = createNetwork(directions, obstacleTypes)
 
@@ -40,17 +41,22 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
   private var botEnergy: Int = 0
 
+  private var collisionCount: Int = 0
+
   private def reset = {
     this.botEnergy = 1000
+    this.collisionCount = 0
     this.lastMove = None
     this.lastState = None
   }
+
 
   def newRound(roundNo: Int, maxStepCount: Int): Unit = {
     reset
   }
 
   def endRound = {
+    println(s"Collision count: $collisionCount")
     trainReplay
   }
 
@@ -105,11 +111,15 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
   }
 
   def remember(state: State, move: XY, stepCount: Int, botEnergy: Int, collision: Option[XY]) {
-
     val reward = calcReward(botEnergy) + collision.map(_ => collisionCost).getOrElse(0)
 
-    //if (collision.isDefined) println(s"Collision: $collision")
-    if (reward > 0) println(s"Step($stepCount) REWARD: $reward")
+    if (collision.isDefined) {
+      collisionCount += 1
+      //println(s"Collision: $collision")
+    }
+    if (reward > 0) {
+      println(s"Step($stepCount) REWARD: $reward")
+    }
 
     if (reward != 0 && lastState.isDefined) {
       val transition = StateTransition(lastState.get, move, state, reward)
@@ -132,11 +142,11 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
     }
   }
 
-  private def toTrainData(stateTransition: StateTransition) = toTrainDataMarkov(stateTransition)
+  private def toTrainData(stateTransition: StateTransition) = toTrainDataSimple(stateTransition)
 
   private def toTrainDataMarkov(stateTransition: StateTransition) = {
     val amax = model.predict(reshape(stateTransition.newState)).amaxNumber().doubleValue()
-    val targetValue = (stateTransition.reward.doubleValue() / 1000d) + discountRate * amax
+    val targetValue = (stateTransition.reward.doubleValue() / rewardAdjustmentBase.doubleValue()) + discountRate * amax
 
     val target = model.predict(reshape(stateTransition.state))
     val index = stateTransition.action.toDirection45
@@ -153,7 +163,7 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
       val index = stateTransition.action.toDirection45
 
       val targetValue = target.getDouble(0L, index.longValue())
-      val reward: Double = stateTransition.reward.doubleValue() / 1000d
+      val reward: Double = stateTransition.reward.doubleValue() / rewardAdjustmentBase.doubleValue()
 
       target.put(0, index, targetValue + reward)
     }
@@ -162,18 +172,13 @@ class DQNAgent(val directions: Int, val obstacleTypes: Int) {
 
   }
 
-  /*
-    private def toTrainDataSimple(stateTransition: StateTransition) = {
-    //val predictedTarget = model.predict(reshape(stateTransition.state))
-
-    val reward: Double = if (stateTransition.reward == 0) 1d else stateTransition.reward.doubleValue()
+  private def toTrainDataVerySimple(stateTransition: StateTransition) = {
     val index = stateTransition.action.toDirection45
-    val target = Globals.directions.map(dir => if (dir == index) reward else 0)
+    val target = Globals.directions.map(dir => if (dir == index) stateTransition.reward.doubleValue() / rewardAdjustmentBase.doubleValue() else 0d)
     val labels = Nd4j.create(target.toArray, Array(1, target.length))
     new DataSet(reshape(stateTransition.state), labels)
 
   }
-   */
 
   private def trainReplay {
     if (replayMemory.size <= 0) return
