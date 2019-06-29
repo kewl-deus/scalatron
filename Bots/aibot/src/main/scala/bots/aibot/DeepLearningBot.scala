@@ -72,19 +72,6 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
     }
   }
 
-  /*
-  def getState: State = {
-    val viewAnalyzer = new ViewAnalyzer(view)
-    val obstacleSuspicions = viewAnalyzer.analyze
-
-    val obstacleMatrix = obstacleSuspicions.map(obs => obs.obstacle match {
-      case Some(obstacle) => relativeDistances(obstacle, obstacleCodes, maxSteps) //obstacleBitmap(obstacle, obstacleCodes)
-      case _ => obstacleCodes.map(_ => 0.doubleValue())
-    })
-
-    obstacleMatrix.flatten
-  }
-  */
 
   /**
     *
@@ -92,12 +79,12 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
     * @param obstacleStateMapper converts obstacle to state
     * @return
     */
-  def getState(obstacleStateMapper: (Obstacle, List[Char]) => State): State = {
+  def getState(obstacleStateMapper: (Seq[Obstacle], List[Char]) => State): State = {
     val viewAnalyzer = new ViewAnalyzer(view)
     val obstacleSuspicions = viewAnalyzer.analyze
 
-    val obstacleMatrix = obstacleSuspicions.map(obs => obs.obstacle match {
-      case Some(obstacle) => obstacleStateMapper(obstacle, obstacleCodes)
+    val obstacleMatrix = obstacleSuspicions.map(obSusp => obSusp.obstacles match {
+      case obSeq: Seq[Obstacle] if (!obSeq.isEmpty) => obstacleStateMapper(obSeq, obstacleCodes)
       case _ => obstacleCodes.map(_ => 0d)
     })
 
@@ -105,25 +92,31 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
   }
 
   /**
-    * Converts obstacle into bitmap vector marking the matching cell code with 1.
+    * Converts obstacles into bitmap vector marking the matching cell code with 1.
     *
-    * @param obstacle
+    * @param obstacles
     * @param obstacleCodes
     * @return
     */
-  def obstacleBitmap(obstacle: Obstacle, obstacleCodes: List[Char]): State = {
-    obstacleCodes.map(code => if (obstacle.cell == code) 1d else 0d)
+  def obstacleBitmap(obstacles: Seq[Obstacle], obstacleCodes: List[Char]): State = {
+    obstacleCodes.map(code => if (obstacles.exists(o => o.cell == code)) 1d else 0d)
   }
 
   /**
-    * Converts obstacle to vector with relative distance to given obstacle
+    * Converts obstacles to vector with relative distance to given obstacle
     *
-    * @param obstacle
+    * @param obstacles
     * @param obstacleCodes
     * @return
     */
-  def relativeDistances(obstacle: Obstacle, obstacleCodes: List[Char]): State = {
-    obstacleCodes.map(code => if (obstacle.cell == code) obstacle.position.stepCount.doubleValue() / Globals.maxSteps.doubleValue() else 0d)
+  def relativeDistances(obstacles: Seq[Obstacle], obstacleCodes: List[Char]): State = {
+    obstacleCodes.map{code =>
+      val firstObstacle = obstacles.find(ob => ob.cell == code)
+      firstObstacle match {
+        case Some(obstacle) => obstacle.position.stepCount.doubleValue() / Globals.maxSteps.doubleValue()
+        case _ => 0d
+      }
+    }
   }
 
   private def debugPrint(view: View): Unit = {

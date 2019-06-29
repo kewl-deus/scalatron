@@ -1,9 +1,8 @@
 package bots.aibot
 
-import bots.framework.{CellCodes, Direction45, View, XY}
+import bots.framework.{CellCodes, View, XY}
 
 class ViewAnalyzer(view: View) extends CellCodes {
-
 
   def analyze = {
 
@@ -14,24 +13,11 @@ class ViewAnalyzer(view: View) extends CellCodes {
     pathsToEdges.map(findFirstObstacle).zipWithIndex.map{case (optObs, direction) => ObstacleSuspicion(direction, optObs)}
   }
 
-  def findFirstObstacle(path: Path) = path(view).zip(path.positions)
+  def listObstacles(path: Path) = path(view)
+    .zip(path.positions)
     .map{case (cell, pos) => Obstacle(cell, pos)}
-    .find(ob => ob.cell != EmptyCell)
 
-}
+  def findFirstObstacle(path: Path) = listObstacles(path).find(ob => ob.cell != EmptyCell).toSeq
 
-case class Obstacle(cell: Char, position: XY) {
-
-  override def toString: String = {
-    val cellName = Globals.nameCellCode(cell)
-    s"Obstacle($cellName, $position)"
-  }
-}
-
-case class ObstacleSuspicion(direction45: Int, obstacle: Option[Obstacle]) {
-
-  override def toString: String = {
-    val dirName = Globals.nameDirection45(direction45)
-    s"ObstacleSuspicion($dirName, $obstacle)"
-  }
+  def filterObstacles(path: Path) = listObstacles(path).filter(ob => ob.cell != EmptyCell)
 }
