@@ -17,9 +17,9 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
     * Welcome(name=String,apocalypse=int,round=int,maxslaves=int)
     */
   def welcome: String = {
-    val round = inputAsIntOrElse("round", 0)
+    val roundNo = inputAsIntOrElse("round", 0) + 1
     val maxStepCount = inputAsIntOrElse("apocalypse", 0)
-    agent.newRound(round, maxStepCount)
+    agent.newRound(roundNo, maxStepCount)
     Globals.Noop
   }
 
