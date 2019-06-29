@@ -20,7 +20,13 @@ class ViewAnalyzer(view: View) extends CellCodes {
 
 }
 
-case class Obstacle(cell: Char, position: XY)
+case class Obstacle(cell: Char, position: XY) {
+
+  override def toString: String = {
+    val cellName = Globals.nameCellCode(cell)
+    s"Obstacle($cellName, $position)"
+  }
+}
 
 case class ObstacleSuspicion(direction45: Int, obstacle: Option[Obstacle]) {
 

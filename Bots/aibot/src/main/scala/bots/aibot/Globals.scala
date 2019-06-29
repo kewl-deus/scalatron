@@ -35,6 +35,6 @@ object Globals extends CellCodes {
     case Toxifera => "Toxifera"
     case Fluppet => "Fluppet"
     case Snorg => "Snorg"
-    case _ => "Unkown"
+    case _ => cellCode.toString
   }
 }

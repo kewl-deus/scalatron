@@ -1,7 +1,7 @@
 package bots.aibot
 
 import bots.framework._
-import Globals._
+import Globals.State
 
 import scala.util.Random
 
@@ -11,7 +11,7 @@ import scala.util.Random
   * @param inputParams
   * @param agent
   */
-class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) extends BotImpl(inputParams) {
+class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char], agent: DQNAgent) extends BotImpl(inputParams) {
 
   /**
     * Welcome(name=String,apocalypse=int,round=int,maxslaves=int)
@@ -44,7 +44,7 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
   private def performReaction = {
     //debugPrint(view)
 
-    val currentState = getState
+    val currentState = getState(relativeDistances)
     val nextMove = calcNextMove(currentState)
     this.move(nextMove)
 
@@ -61,7 +61,7 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
     //optimize: check for collision
     //repeat until nextMove != last collision Move
 
-    if (Random.nextInt(200) < epsilon){
+    if (Random.nextInt(200) < epsilon) {
       //random move
       this.say("Random move")
       XY.fromDirection45(Random.nextInt(8))
@@ -72,7 +72,8 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
     }
   }
 
-  private def getState: State = {
+  /*
+  def getState: State = {
     val viewAnalyzer = new ViewAnalyzer(view)
     val obstacleSuspicions = viewAnalyzer.analyze
 
@@ -83,13 +84,46 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
 
     obstacleMatrix.flatten
   }
+  */
 
-  private def obstacleBitmap(obstacle: Obstacle, cellCodes: List[Char]) = {
-    cellCodes.map(code => if (obstacle.cell == code) 1 else 0).map(_.doubleValue())
+  /**
+    *
+    * @param obstacleCodes       chars defining obstacles
+    * @param obstacleStateMapper converts obstacle to state
+    * @return
+    */
+  def getState(obstacleStateMapper: (Obstacle, List[Char]) => State): State = {
+    val viewAnalyzer = new ViewAnalyzer(view)
+    val obstacleSuspicions = viewAnalyzer.analyze
+
+    val obstacleMatrix = obstacleSuspicions.map(obs => obs.obstacle match {
+      case Some(obstacle) => obstacleStateMapper(obstacle, obstacleCodes)
+      case _ => obstacleCodes.map(_ => 0d)
+    })
+
+    obstacleMatrix.flatten
   }
 
-  private def relativeDistances(obstacle: Obstacle, cellCodes: List[Char], maxSteps: Int) = {
-    cellCodes.map(code => if (obstacle.cell == code) obstacle.position.stepCount.doubleValue() / maxSteps.doubleValue() else 0.doubleValue())
+  /**
+    * Converts obstacle into bitmap vector marking the matching cell code with 1.
+    *
+    * @param obstacle
+    * @param obstacleCodes
+    * @return
+    */
+  def obstacleBitmap(obstacle: Obstacle, obstacleCodes: List[Char]): State = {
+    obstacleCodes.map(code => if (obstacle.cell == code) 1d else 0d)
+  }
+
+  /**
+    * Converts obstacle to vector with relative distance to given obstacle
+    *
+    * @param obstacle
+    * @param obstacleCodes
+    * @return
+    */
+  def relativeDistances(obstacle: Obstacle, obstacleCodes: List[Char]): State = {
+    obstacleCodes.map(code => if (obstacle.cell == code) obstacle.position.stepCount.doubleValue() / Globals.maxSteps.doubleValue() else 0d)
   }
 
   private def debugPrint(view: View): Unit = {
@@ -98,5 +132,5 @@ class DeepLearningBot(inputParams: Map[String, String], val agent: DQNAgent) ext
 
   def collision: Option[XY] = inputParams.get("collision").map(s => XY(s))
 
-  def drawLine(from: XY,to: XY,color: String) = append(s"DrawLine(from=$from,to=$to,color=$color)")
+  def drawLine(from: XY, to: XY, color: String) = append(s"DrawLine(from=$from,to=$to,color=$color)")
 }

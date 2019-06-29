@@ -13,12 +13,12 @@ class ControlFunctionFactory {
     opcode match {
       case "Welcome" => {
         Stats.welcome(params)
-        new DeepLearningBot(params, botBackend).welcome
+        new DeepLearningBot(params, Globals.obstacleCodes,botBackend).welcome
       }
-      case "React" => new DeepLearningBot(params, botBackend).react
+      case "React" => new DeepLearningBot(params, Globals.obstacleCodes, botBackend).react
       case "Goodbye" => {
         Stats.goodbye(params)
-        new DeepLearningBot(params, botBackend).goodbye
+        new DeepLearningBot(params, Globals.obstacleCodes,botBackend).goodbye
       }
       case _ => Globals.Noop
     }

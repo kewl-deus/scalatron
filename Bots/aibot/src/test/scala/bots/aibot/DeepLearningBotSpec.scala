@@ -1,5 +1,6 @@
 package bots.aibot
 
+import bots.aibot.Globals.State
 import bots.framework._
 import org.deeplearning4j.scalnet.models.Sequential
 import org.specs2.mutable.Specification
@@ -137,14 +138,121 @@ class DeepLearningBotSpec extends Specification with CellCodes {
     }
   }
 
- "DQNAgent" should {
-   "build network" in {
-     val agent = new DQNAgent
-     val model = agent.createNetwork(8, List(Wall, OccludedCell, Zugar, Fluppet, Toxifera, Snorg).size)
+  "Obstacle bitmap converter" should {
+    "return a bitmap as state" in {
+      val view: View = View(
+        """
+                      a______________________________
+                      _______________________________
+                      __b____________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      ________a______________________
+                      _______________________________
+                      __________c____________________
+                      ___________b___________________
+                      ____________a__________________
+                      _____________a_________________
+                      _______________________________
+                      _______________M_______________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                """.replaceAll("\\s", ""))
 
-     println(model.toJson)
+      view.cells.length mustEqual (31 * 31)
 
-     model.isInstanceOf[Sequential] mustEqual true
-   }
- }
+      val botPos = XY(0, 0)
+      view(botPos) mustEqual (MasterBot)
+
+      val inputParams = Map("view" -> view.cells)
+      val obstacleCodes = List('a', 'b', 'c')
+      val bot = new DeepLearningBot(inputParams, obstacleCodes, new DQNAgent(Globals.directions.size, obstacleCodes.size))
+
+      val bitmap = bot.getState(bot.obstacleBitmap)
+
+      bitmap.size mustEqual(Globals.directions.size * obstacleCodes.size)
+
+      val dirIndex = Direction45.UpLeft
+      val obstacleIndex = obstacleCodes.size * dirIndex
+
+      bitmap.zipWithIndex.foreach{case (value, index) => if (index != obstacleIndex) value mustEqual(0d)}
+      bitmap(obstacleIndex) mustEqual(1.0d)
+
+    }
+  }
+
+  "Obstacle distance converter" should {
+    "return vector of relative distances to obstacle" in {
+      val view: View = View(
+        """
+                      a______________________________
+                      _______________________________
+                      __b____________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      ________a______________________
+                      _______________________________
+                      __________c____________________
+                      ___________b___________________
+                      ____________a__________________
+                      _____________a_________________
+                      _______________________________
+                      _______________M_______________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                """.replaceAll("\\s", ""))
+
+      view.cells.length mustEqual (31 * 31)
+
+      val botPos = XY(0, 0)
+      view(botPos) mustEqual (MasterBot)
+
+      val inputParams = Map("view" -> view.cells)
+      val obstacleCodes = List('a', 'b', 'c')
+      val bot = new DeepLearningBot(inputParams, obstacleCodes, new DQNAgent(Globals.directions.size, obstacleCodes.size))
+
+      val relDistanceVector = bot.getState(bot.relativeDistances)
+
+      relDistanceVector.size mustEqual(Globals.directions.size * obstacleCodes.size)
+
+      val dirIndex = Direction45.UpLeft
+      val obstacleIndex = obstacleCodes.size * dirIndex
+
+      val stepsToObstacle = 2
+      relDistanceVector(obstacleIndex) mustEqual(stepsToObstacle.doubleValue() / Globals.maxSteps.doubleValue())
+
+    }
+  }
 }
