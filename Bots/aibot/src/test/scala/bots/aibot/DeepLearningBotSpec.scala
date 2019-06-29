@@ -254,4 +254,65 @@ class DeepLearningBotSpec extends Specification with CellCodes {
 
     }
   }
+
+  "Obstacle density converter" should {
+    "return vector of relative obstacle densities" in {
+      val view: View = View(
+        """
+                      a______________________________
+                      _______________________________
+                      __b____________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      ________a______________________
+                      _______________________________
+                      __________c____________________
+                      ___________b___________________
+                      ____________a__________________
+                      _____________a_________________
+                      _______________________________
+                      _______________M_a_____a_______
+                      _______________b_______________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________a_______________
+                      _______________________________
+                      _______________________________
+                      _______________b_______________
+                      _______________b_______________
+                      _______________b_______________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                      _______________________________
+                """.replaceAll("\\s", ""))
+
+      view.cells.length mustEqual (31 * 31)
+
+      val botPos = XY(0, 0)
+      view(botPos) mustEqual (MasterBot)
+
+      val inputParams = Map("view" -> view.cells)
+      val obstacleCodes = List('a', 'b', 'c')
+      val bot = new DeepLearningBot(inputParams, obstacleCodes, new DQNAgent(Globals.directions.size, obstacleCodes.size))
+
+      val relDensityVector = bot.getState(bot.relativeDensity)
+
+      relDensityVector.size mustEqual(Globals.directions.size * obstacleCodes.size)
+
+      val upleftA = obstacleCodes.size * Direction45.UpLeft
+      val upleftB = obstacleCodes.size * Direction45.UpLeft + 1
+      val upleftC = obstacleCodes.size * Direction45.UpLeft + 2
+
+      relDensityVector(upleftA) mustEqual(4d / Globals.maxSteps.doubleValue())
+      relDensityVector(upleftB) mustEqual(2d / Globals.maxSteps.doubleValue())
+      relDensityVector(upleftB) mustEqual(1d / Globals.maxSteps.doubleValue())
+
+    }
+  }
 }

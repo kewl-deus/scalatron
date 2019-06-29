@@ -13,7 +13,7 @@ class ViewAnalyzer(view: View) extends CellCodes {
 
     val pathsToEdges: Seq[Path] = positions.map(pos => Path(pos, Globals.maxSteps))
 
-    pathsToEdges.map(readCells).zipWithIndex.map{case (cells, direction) => CellVector(direction, cells)}
+    pathsToEdges.map(readCells).zipWithIndex.map{case (cells, direction) => ViewAxis(direction, cells)}
   }
 
   def readCells(path: Path) = path(view)

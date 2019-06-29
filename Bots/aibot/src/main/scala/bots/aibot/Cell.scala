@@ -10,10 +10,3 @@ case class Cell(cellCode: Char, position: XY) {
   }
 }
 
-case class CellVector(direction45: Int, cells: Seq[Cell]) {
-
-  override def toString: String = {
-    val dirName = Globals.nameDirection45(direction45)
-    s"CellVector($dirName, $cells)"
-  }
-}

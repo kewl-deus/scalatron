@@ -81,10 +81,10 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
     */
   def getState(obstacleStateMapper: (Seq[Cell], List[Char]) => State): State = {
     val viewAnalyzer = new ViewAnalyzer(view)
-    val cellVectors = viewAnalyzer.analyze
+    val viewAxes = viewAnalyzer.analyze
 
-    val obstacleMatrix = cellVectors.map(cellVector => cellVector.cells match {
-      case cellSeq: Seq[Cell] if (!cellSeq.isEmpty) => obstacleStateMapper(cellSeq, obstacleCodes)
+    val obstacleMatrix = viewAxes.map(axis => axis.cells match {
+      case cells: Seq[Cell] if (!cells.isEmpty) => obstacleStateMapper(cells, obstacleCodes)
       case _ => obstacleCodes.map(_ => 0d)
     })
 
@@ -105,21 +105,35 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
   }
 
   /**
-    * Converts cells to vector with relative distances to given obstacle
+    * Converts cells to vector with relative distances.
+    * State vector length = obstacleCodes count.
+    * State value represents the relative distance to the first cell containing the given obstacle code.
+    * Relative distance is number of steps to cell in relation to length of view-axis (= number of cells)
     *
     * @param cells
     * @param obstacleCodes
     * @return
     */
   def relativeDistances(cells: Seq[Cell], obstacleCodes: List[Char]): State = {
+    val maxSteps = cells.size.doubleValue()
     obstacleCodes.map{code =>
       val firstObstacle = cells.find(ob => ob.cellCode == code)
       firstObstacle match {
-        case Some(obstacle) => obstacle.position.stepCount.doubleValue() / Globals.maxSteps.doubleValue()
+        case Some(obstacle) => obstacle.position.stepCount.doubleValue() / maxSteps
         case _ => 0d
       }
     }
   }
+
+  def relativeDensity(cells: Seq[Cell], obstacleCodes: List[Char]): State = {
+    val cellCount = cells.size.doubleValue()
+    obstacleCodes.map{code =>
+      val obstacleCells = cells.filter(ob => ob.cellCode == code)
+      obstacleCells.size.doubleValue() / cellCount.doubleValue()
+    }
+  }
+
+  //TODO relativeDensityWithWeightedDistance
 
   private def debugPrint(view: View): Unit = {
     println(view.cells.grouped(31).mkString("\n"))
