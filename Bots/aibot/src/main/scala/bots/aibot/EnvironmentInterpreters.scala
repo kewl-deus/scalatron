@@ -91,8 +91,14 @@ object EnvironmentInterpreters extends CellCodes {
       }
     }
 
-    obstacleCodes.map ( code =>
-      cells.find(ob => ob.code == code).map(cell => calcReward(cell.code, cell.position.stepCount)).getOrElse(0d) / 1000d
-    )
+    def normalize(reward: Double) = (reward / 1000).abs
+
+    obstacleCodes.map { code =>
+      cells
+        .find(ob => ob.code == code)
+        .map(cell => calcReward(cell.code, cell.position.stepCount))
+        .map(normalize)
+        .getOrElse(0d)
+    }
   }
 }
