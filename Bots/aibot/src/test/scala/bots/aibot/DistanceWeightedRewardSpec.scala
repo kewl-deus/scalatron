@@ -1,10 +1,11 @@
 package bots.aibot
 
-import bots.framework.{CellCodes, Direction45, View, XY}
+import bots.aibot.TestUtils._
+import bots.framework.{Direction45, View, XY}
 import org.specs2.mutable.Specification
-import TestUtils._
+import bots.framework.CellCodes._
 
-class DistanceWeightedRewardSpec extends Specification with CellCodes {
+class DistanceWeightedRewardSpec extends Specification  {
 
   "DistanceWeightedReward converter" should {
     "return a state vector with rewards" in {
@@ -48,13 +49,10 @@ class DistanceWeightedRewardSpec extends Specification with CellCodes {
       val botPos = XY(0, 0)
       view(botPos) mustEqual (MasterBot)
 
-      val inputParams = Map("view" -> view.cells)
       val obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg)
-      val networkModel =DRLModels.createNetwork(Direction45.ALL.size, obstacleCodes.size)
-      val agent = new DRLAgent(networkModel, new DirectTransfer(40), new PredictionRewardAdjustmentDataConverter(1000))
-      val bot = new DeepLearningBot(inputParams, obstacleCodes, EnvironmentInterpreters.distanceWeightedReward, agent)
 
-      val state = bot.getState
+      val viewAnalyzer = new ViewAnalyzer(obstacleCodes, EnvironmentInterpreters.distanceWeightedReward)
+      val state = viewAnalyzer.getState(view)
 
       state.size mustEqual (Direction45.ALL.size * obstacleCodes.size)
 

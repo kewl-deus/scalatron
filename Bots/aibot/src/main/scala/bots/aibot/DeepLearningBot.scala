@@ -1,20 +1,14 @@
 package bots.aibot
 
+import bots.aibot.DataStructureUtils.State
 import bots.framework._
-import DataStructureUtils.State
-import bots.aibot.EnvironmentInterpreters.ObstacleStateMapper
 
 import scala.util.Random
 
 /**
   * Bot Frontend: Input parsing and command chaining
-  *
-  * @param inputParams
-  * @param agent
   */
-class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char], envInterpreter: ObstacleStateMapper, agent: DRLAgent) extends BotImpl(inputParams) {
-
-  val Noop = ""
+class DeepLearningBot(inputParams: Map[String, String], viewAnalyzer: ViewAnalyzer, agent: DRLAgent) extends BotImpl(inputParams) {
 
   /**
     * Welcome(name=String,apocalypse=int,round=int,maxslaves=int)
@@ -23,7 +17,7 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
     val roundNo = inputAsIntOrElse("round", 0) + 1
     val maxStepCount = inputAsIntOrElse("apocalypse", 0)
     agent.newRound(roundNo, maxStepCount)
-    Noop
+    toString
   }
 
   /**
@@ -32,7 +26,7 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
   def goodbye: String = {
     //val finalEnergy = inputAsIntOrElse("energy", 0)
     agent.endRound
-    Noop
+    toString
   }
 
 
@@ -47,7 +41,7 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
   private def performReaction = {
     //debugPrint(view)
 
-    val currentState = getState
+    val currentState = viewAnalyzer.getState(view)
     val nextMove = calcNextMove(currentState)
     this.move(nextMove)
 
@@ -73,18 +67,6 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
       //this.say("Predicted move")
       agent.predictMove(state)
     }
-  }
-
-  def getState: State = {
-    val viewAnalyzer = new ViewAnalyzer(view)
-    val viewAxes = viewAnalyzer.analyze
-
-    val obstacleMatrix = viewAxes.map(axis => axis.cells match {
-      case cells: Seq[Cell] if (!cells.isEmpty) => this.envInterpreter(cells, obstacleCodes)
-      case _ => obstacleCodes.map(_ => 0d)
-    })
-
-    obstacleMatrix.flatten
   }
 
 

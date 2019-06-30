@@ -1,10 +1,11 @@
 package bots.aibot
 
-import bots.framework.{CellCodes, Direction45, View, XY}
+import bots.aibot.TestUtils._
+import bots.framework.CellCodes._
+import bots.framework.{Direction45, View, XY}
 import org.specs2.mutable.Specification
-import TestUtils._
 
-class ShortestDistanceSpec extends Specification with CellCodes {
+class ShortestDistanceSpec extends Specification {
 
   "Obstacle distance converter" should {
     "return vector of distances to obstacle" in {
@@ -48,13 +49,11 @@ class ShortestDistanceSpec extends Specification with CellCodes {
       val botPos = XY(0, 0)
       view(botPos) mustEqual (MasterBot)
 
-      val inputParams = Map("view" -> view.cells)
       val obstacleCodes = List('a', 'b', 'c')
-      val networkModel =DRLModels.createNetwork(Direction45.ALL.size, obstacleCodes.size)
-      val agent = new DRLAgent(networkModel, new DirectTransfer(40), new PredictionRewardAdjustmentDataConverter(1000))
-      val bot = new DeepLearningBot(inputParams, obstacleCodes, EnvironmentInterpreters.shortestDistance, agent)
 
-      val distances = bot.getState
+      val viewAnalyzer = new ViewAnalyzer(obstacleCodes, EnvironmentInterpreters.shortestDistance)
+      val distances = viewAnalyzer.getState(view)
+
 
       distances.size mustEqual (Direction45.ALL.size * obstacleCodes.size)
 

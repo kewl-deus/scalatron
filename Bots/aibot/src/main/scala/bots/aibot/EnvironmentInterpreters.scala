@@ -1,12 +1,12 @@
 package bots.aibot
 
 import bots.aibot.DataStructureUtils.State
-import bots.framework.CellCodes
+import bots.framework.CellCodes._
 
 /**
   * Functions for interpreting the observed environment
   */
-object EnvironmentInterpreters extends CellCodes {
+object EnvironmentInterpreters {
 
   type ObstacleStateMapper = (Seq[Cell], List[Char]) => State
 

@@ -1,27 +1,24 @@
 package bots.aibot
 
-import bots.aibot.EnvironmentInterpreters.ObstacleStateMapper
+import bots.framework.CellCodes._
 import bots.framework.{CommandParser, Direction45}
 import ch.qos.logback.classic.Level
 import org.slf4j.LoggerFactory
-import bots.framework.CellCodes
 
 
-class ControlFunctionFactory  {
-
-  import DeepLearningBotConfig._
+class ControlFunctionFactory {
 
   def create = (input: String) => {
     val (opcode, params) = CommandParser(input)
     opcode match {
       case "Welcome" => {
         Stats.welcome(params)
-        new DeepLearningBot(params, obstacleCodes, envInterpreter, DeepLearningBotBackend).welcome
+        new DeepLearningBot(params, DeepLearningBotViewAnalyzer, DeepLearningBotBackend).welcome
       }
-      case "React" => new DeepLearningBot(params, obstacleCodes, envInterpreter, DeepLearningBotBackend).react
+      case "React" => new DeepLearningBot(params, DeepLearningBotViewAnalyzer, DeepLearningBotBackend).react
       case "Goodbye" => {
         Stats.goodbye(params)
-        new DeepLearningBot(params, obstacleCodes, envInterpreter, DeepLearningBotBackend).goodbye
+        new DeepLearningBot(params, DeepLearningBotViewAnalyzer, DeepLearningBotBackend).goodbye
       }
       case _ => ""
     }
@@ -29,14 +26,14 @@ class ControlFunctionFactory  {
 }
 
 
-object DeepLearningBotConfig extends CellCodes {
-  val obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg)
-  val envInterpreter: ObstacleStateMapper = EnvironmentInterpreters.obstacleBitmap
-}
+object DeepLearningBotViewAnalyzer extends ViewAnalyzer(
+  obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg),
+  envInterpreter = EnvironmentInterpreters.obstacleBitmap
+)
 
 
 object DeepLearningBotBackend extends DRLAgent(
-  model = DRLModels.createCustomNetwork(Direction45.ALL.size, DeepLearningBotConfig.obstacleCodes.size),
+  model = DRLModels.createCustomNetwork(Direction45.ALL.size, DeepLearningBotViewAnalyzer.obstacleCodes.size),
   replayMemoryManager = new DirectTransfer(20), // new ShortTermMemory(20)
   trainDataConverter = new PredictionRewardAdjustmentDataConverter(200), //new DirectRewardLastMoveDataConverter(1), //new MarkovTrainDataConverter(500),
   collisionCost = 40) {

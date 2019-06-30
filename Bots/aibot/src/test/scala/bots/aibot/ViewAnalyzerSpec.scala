@@ -1,10 +1,11 @@
 package bots.aibot
 
+import bots.aibot.TestUtils._
+import bots.framework.CellCodes._
 import bots.framework._
 import org.specs2.mutable.Specification
-import TestUtils._
 
-class ViewAnalyzerSpec extends Specification with CellCodes {
+class ViewAnalyzerSpec extends Specification {
 
 
   "View analysis" should {
@@ -51,8 +52,8 @@ class ViewAnalyzerSpec extends Specification with CellCodes {
       val botPos = XY(0, 0)
       view(botPos) mustEqual (MasterBot)
 
-      val viewAnalyzer = new ViewAnalyzer(view)
-      val viewAxes = viewAnalyzer.analyze
+      val viewAnalyzer = new ViewAnalyzer("abcdefghijklmnABCDEFGHIJKLMN0123456789".toList, EnvironmentInterpreters.obstacleBitmap)
+      val viewAxes = viewAnalyzer.getAxes(view)
 
       //viewAxes.map(axis => axis.cells).map()
       /*

@@ -1,6 +1,6 @@
 package bots.framework
 
-trait CellCodes {
+object CellCodes {
   val MasterBot = 'M'
   val SlaveBot = 'S'
 

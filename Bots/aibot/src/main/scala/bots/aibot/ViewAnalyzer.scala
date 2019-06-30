@@ -1,26 +1,47 @@
 package bots.aibot
 
-import bots.framework.{CellCodes, Direction45, View, XY}
+import bots.aibot.DataStructureUtils.State
+import bots.aibot.EnvironmentInterpreters.ObstacleStateMapper
+import bots.framework.{Direction45, View, XY}
 
-class ViewAnalyzer(view: View) extends CellCodes {
+class ViewAnalyzer(val obstacleCodes: List[Char], val envInterpreter: ObstacleStateMapper) {
 
-  /** max amount of steps from bot position (0,0) to edge of view */
-  val maxSteps = (view.size - 1) / 2
+  private val positions = Direction45.ALL.map(dir => XY.fromDirection45(dir))
 
   /**
-    * @return CellVector for each of the 45-degree directions
+    *
+    * @param view
+    * @return max amount of steps from bot position (0,0) to edge of view
     */
-  def analyze = {
+  def getMaxSteps(view: View) = (view.size - 1) / 2
 
-    val positions = Direction45.ALL.map(dir => XY.fromDirection45(dir))
+  /**
+    * @param view
+    * @return ViewAxis for each of the 45-degree directions
+    */
+  def getAxes(view: View) = {
 
+    val maxSteps = getMaxSteps(view)
     val pathsToEdges: Seq[Path] = positions.map(pos => Path(pos, maxSteps))
 
-    pathsToEdges.map(readCells).zipWithIndex.map{case (cells, direction) => ViewAxis(direction, cells)}
+    pathsToEdges
+      .map(p => readCells(p, view))
+      .zipWithIndex.map { case (cells, direction) => ViewAxis(direction, cells) }
   }
 
-  def readCells(path: Path) = path(view)
+  def getState(view: View): State = {
+    val viewAxes = getAxes(view)
+
+    val obstacleMatrix = viewAxes.map(axis => axis.cells match {
+      case cells: Seq[Cell] if (!cells.isEmpty) => this.envInterpreter(cells, obstacleCodes)
+      case _ => obstacleCodes.map(_ => 0d)
+    })
+
+    obstacleMatrix.flatten
+  }
+
+  def readCells(path: Path, view: View) = path(view)
     .zip(path.positions)
-    .map{case (cell, pos) => Cell(cell, pos)}
+    .map { case (cell, pos) => Cell(cell, pos) }
 
 }
