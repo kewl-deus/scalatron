@@ -100,8 +100,8 @@ class DRLAgent(model: Model,
       println(s"Step($stepCount) REWARD: $reward")
     }
 
-    if (lastState.isDefined) {
-      val transition = StateTransition(lastState.get, move, state, reward)
+    if (lastState.isDefined && lastMove.isDefined) {
+      val transition = StateTransition(lastState.get, lastMove.get, state, reward)
       replayMemoryManager.transfer(transition, t => {
         replayMemory.enqueue(t)
         train(t)
