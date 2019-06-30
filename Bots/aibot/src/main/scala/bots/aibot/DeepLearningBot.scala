@@ -67,7 +67,7 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
     if (Random.nextInt(200) < epsilon) {
       //random move
       this.say("Random move")
-      XY.fromDirection45(Random.nextInt(8))
+      XY.fromDirection45(Random.nextInt(Direction45.ALL.size))
     } else {
       //predicted move
       //this.say("Predicted move")
