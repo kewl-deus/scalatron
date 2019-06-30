@@ -1,8 +1,8 @@
 package bots.aibot
 
 import bots.framework._
-import Globals.State
-import bots.aibot.Strategies.ObstacleStateMapper
+import DataStructureUtils.State
+import bots.aibot.EnvironmentInterpreters.ObstacleStateMapper
 
 import scala.util.Random
 
@@ -12,7 +12,9 @@ import scala.util.Random
   * @param inputParams
   * @param agent
   */
-class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char], strategy: ObstacleStateMapper, agent: DQNAgent) extends BotImpl(inputParams) {
+class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char], envInterpreter: ObstacleStateMapper, agent: DRLAgent) extends BotImpl(inputParams) {
+
+  val Noop = ""
 
   /**
     * Welcome(name=String,apocalypse=int,round=int,maxslaves=int)
@@ -21,16 +23,16 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
     val roundNo = inputAsIntOrElse("round", 0) + 1
     val maxStepCount = inputAsIntOrElse("apocalypse", 0)
     agent.newRound(roundNo, maxStepCount)
-    Globals.Noop
+    Noop
   }
 
   /**
     * Goodbye(energy=int)
     */
   def goodbye: String = {
-    val finalEnergy = inputAsIntOrElse("energy", 0)
+    //val finalEnergy = inputAsIntOrElse("energy", 0)
     agent.endRound
-    Globals.Noop
+    Noop
   }
 
 
@@ -78,7 +80,7 @@ class DeepLearningBot(inputParams: Map[String, String], obstacleCodes: List[Char
     val viewAxes = viewAnalyzer.analyze
 
     val obstacleMatrix = viewAxes.map(axis => axis.cells match {
-      case cells: Seq[Cell] if (!cells.isEmpty) => this.strategy(cells, obstacleCodes)
+      case cells: Seq[Cell] if (!cells.isEmpty) => this.envInterpreter(cells, obstacleCodes)
       case _ => obstacleCodes.map(_ => 0d)
     })
 

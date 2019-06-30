@@ -11,6 +11,6 @@ object Bots {
 
   lazy val DeepThought = new EntityControllerImpl("DeepThought", new bots.deepthought.ControlFunctionFactory().create)
 
-  lazy val AIBot = new EntityControllerImpl("aibot", new bots.aibot.ControlFunctionFactory().create)
+  lazy val AIBot = new EntityControllerImpl("Genisys", new bots.aibot.ControlFunctionFactory().create)
 
 }

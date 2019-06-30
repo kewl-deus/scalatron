@@ -124,6 +124,7 @@ object XY {
 }
 
 object Direction45 {
+
   val Right = 0
   val RightUp = 1
   val Up = 2
@@ -132,6 +133,19 @@ object Direction45 {
   val LeftDown = 5
   val Down = 6
   val DownRight = 7
+
+  val ALL = Right.to(DownRight)
+
+  def nameDirection45(index: Int): String = index match {
+    case Direction45.Right => "Right"
+    case Direction45.RightUp => "RightUp"
+    case Direction45.Up => "Up"
+    case Direction45.UpLeft => "UpLeft"
+    case Direction45.Left => "Left"
+    case Direction45.LeftDown => "LeftDown"
+    case Direction45.Down => "Down"
+    case Direction45.DownRight => "DownRight"
+  }
 }
 
 
@@ -140,4 +154,13 @@ object Direction90 {
   val Up = 1
   val Left = 2
   val Down = 3
+
+  val ALL = Right.to(Down)
+
+  def nameDirection90(index: Int): String = index match {
+    case Direction45.Right => "Right"
+    case Direction45.Up => "Up"
+    case Direction45.Left => "Left"
+    case Direction45.Down => "Down"
+  }
 }

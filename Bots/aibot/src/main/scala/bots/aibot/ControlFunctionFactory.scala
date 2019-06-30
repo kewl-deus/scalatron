@@ -1,31 +1,53 @@
 package bots.aibot
 
-import bots.aibot.Strategies.ObstacleStateMapper
-import bots.framework.{BotImpl, CommandParser}
+import bots.aibot.EnvironmentInterpreters.ObstacleStateMapper
+import bots.framework.{CommandParser, Direction45}
 import ch.qos.logback.classic.Level
 import org.slf4j.LoggerFactory
+import bots.framework.CellCodes
 
-class ControlFunctionFactory {
 
-  val botBackend = DeepLearningBotBackend
-  val strategy: ObstacleStateMapper = Strategies.relativeDensity
+class ControlFunctionFactory  {
+
+  import DeepLearningBotConfig._
 
   def create = (input: String) => {
     val (opcode, params) = CommandParser(input)
     opcode match {
       case "Welcome" => {
         Stats.welcome(params)
-        new DeepLearningBot(params, Globals.obstacleCodes, strategy, botBackend).welcome
+        new DeepLearningBot(params, obstacleCodes, envInterpreter, DeepLearningBotBackend).welcome
       }
-      case "React" => new DeepLearningBot(params, Globals.obstacleCodes, strategy, botBackend).react
+      case "React" => new DeepLearningBot(params, obstacleCodes, envInterpreter, DeepLearningBotBackend).react
       case "Goodbye" => {
         Stats.goodbye(params)
-        new DeepLearningBot(params, Globals.obstacleCodes, strategy, botBackend).goodbye
+        new DeepLearningBot(params, obstacleCodes, envInterpreter, DeepLearningBotBackend).goodbye
       }
-      case _ => Globals.Noop
+      case _ => ""
     }
   }
 }
+
+
+object DeepLearningBotConfig extends CellCodes {
+  val obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg)
+  val envInterpreter: ObstacleStateMapper = EnvironmentInterpreters.distanceWeightedReward
+}
+
+
+object DeepLearningBotBackend extends DRLAgent(
+  model = DRLModels.createNetwork(Direction45.ALL.size, DeepLearningBotConfig.obstacleCodes.size),
+  replayMemoryManager = new DirectTransfer(20),
+  trainDataConverter = new SimpleTrainDataConverter(1000)) {
+
+  //System.setProperty("org.slf4j.simpleLogger.log.org.deeplearning4j.scalnet.models.Sequential", "warn")
+
+  LoggerFactory
+    .getLogger("org.deeplearning4j.scalnet.models.Sequential")
+    .asInstanceOf[ch.qos.logback.classic.Logger]
+    .setLevel(Level.WARN)
+}
+
 
 object Stats {
   private var roundNo = 0
@@ -48,15 +70,4 @@ object Stats {
     println(s"Round($roundNo,${elapsedTime}s) Final energy: $finalEnergy | Record: $scoreRecord")
   }
 
-
-}
-
-
-object DeepLearningBotBackend extends DQNAgent(Globals.directions.size, Globals.obstacleCodes.size) {
-  //System.setProperty("org.slf4j.simpleLogger.log.org.deeplearning4j.scalnet.models.Sequential", "warn")
-
-  LoggerFactory
-    .getLogger("org.deeplearning4j.scalnet.models.Sequential")
-    .asInstanceOf[ch.qos.logback.classic.Logger]
-    .setLevel(Level.WARN)
 }
