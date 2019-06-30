@@ -12,7 +12,7 @@ abstract class ReplayMemoryManager(memoryRewardThreshold: Int) {
   /**
     *
     * @param transition input to be stored
-    * @param remember store function to be called in order to save transition
+    * @param remember   store function to be called in order to save transition
     */
   def transfer(transition: StateTransition, remember: StateTransition => Unit)
 

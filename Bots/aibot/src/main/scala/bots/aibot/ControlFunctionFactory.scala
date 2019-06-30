@@ -31,14 +31,15 @@ class ControlFunctionFactory  {
 
 object DeepLearningBotConfig extends CellCodes {
   val obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg)
-  val envInterpreter: ObstacleStateMapper = EnvironmentInterpreters.distanceWeightedReward
+  val envInterpreter: ObstacleStateMapper = EnvironmentInterpreters.obstacleBitmap
 }
 
 
 object DeepLearningBotBackend extends DRLAgent(
   model = DRLModels.createNetwork(Direction45.ALL.size, DeepLearningBotConfig.obstacleCodes.size),
-  replayMemoryManager = new DirectTransfer(20),
-  trainDataConverter = new SimpleTrainDataConverter(1000)) {
+  replayMemoryManager = new DirectTransfer(20), //new ShortTermMemory(20),
+  trainDataConverter = new PredictionRewardAdjustmentDataConverter(400), //new DirectRewardLastMoveDataConverter(1)
+  collisionCost = 40) {
 
   //System.setProperty("org.slf4j.simpleLogger.log.org.deeplearning4j.scalnet.models.Sequential", "warn")
 

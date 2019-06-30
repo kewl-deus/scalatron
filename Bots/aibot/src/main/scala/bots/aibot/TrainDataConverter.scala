@@ -6,6 +6,8 @@ import org.nd4j.linalg.factory.Nd4j
 import DataStructureUtils.reshape
 import bots.framework.Direction45
 
+import scala.util.Random
+
 abstract class TrainDataConverter(rewardAdjustmentBase: Int) {
 
   def toTrainData(stateTransition: StateTransition, predict: INDArray => INDArray): DataSet
@@ -31,7 +33,7 @@ class MarkovTrainDataConverter(rewardAdjustmentBase: Int, val discountRate: Doub
   }
 }
 
-class SimpleTrainDataConverter(rewardAdjustmentBase: Int) extends TrainDataConverter(rewardAdjustmentBase) {
+class PredictionRewardAdjustmentDataConverter(rewardAdjustmentBase: Int) extends TrainDataConverter(rewardAdjustmentBase) {
 
   override def toTrainData(stateTransition: StateTransition, predict: INDArray => INDArray): DataSet = {
     val target = predict(reshape(stateTransition.state))
@@ -41,8 +43,9 @@ class SimpleTrainDataConverter(rewardAdjustmentBase: Int) extends TrainDataConve
 
       val targetValue = target.getDouble(0L, index.longValue())
       val reward: Double = stateTransition.reward.doubleValue() / rewardAdjustmentBase.doubleValue()
-
       target.put(0, index, targetValue + reward)
+
+      //target.put(0, index, if (stateTransition.reward > 0) 1d else 0d)
     }
 
     new DataSet(reshape(stateTransition.state), target)
@@ -50,10 +53,25 @@ class SimpleTrainDataConverter(rewardAdjustmentBase: Int) extends TrainDataConve
 
 }
 
-class VerySimpleTrainDataConverter(rewardAdjustmentBase: Int) extends TrainDataConverter(rewardAdjustmentBase) {
+class DirectRewardLastMoveDataConverter(rewardAdjustmentBase: Int) extends TrainDataConverter(rewardAdjustmentBase) {
+
+  private def zero(): Double = { 0d }
+
   override def toTrainData(stateTransition: StateTransition, predict: INDArray => INDArray): DataSet = {
-    val index = stateTransition.action.toDirection45
-    val target = Direction45.ALL.map(dir => if (dir == index) stateTransition.reward.doubleValue() / rewardAdjustmentBase.doubleValue() else 0d)
+
+    def createTarget(direction: Int, valueMatching: Double, valueOthers: () => Double) = {
+      Direction45.ALL.map(dir => if (dir == direction) valueMatching else valueOthers())
+    }
+
+    val dirIndex = stateTransition.action.toDirection45
+
+
+    val target = stateTransition.reward match {
+      case 0 => createTarget(dirIndex, Random.nextDouble(), zero)
+      case reward: Int if (reward > 0) => createTarget(dirIndex, 1d, zero) //reward.doubleValue() / rewardAdjustmentBase.doubleValue()
+      case reward: Int if (reward < 0) => createTarget(dirIndex, 0d, Random.nextDouble)
+    }
+
     val labels = Nd4j.create(target.toArray, Array(1, target.length))
     new DataSet(reshape(stateTransition.state), labels)
   }

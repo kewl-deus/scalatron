@@ -14,13 +14,15 @@ import scala.util.Random
 
 /**
   * Deep Reinforced Learning Agent (= Bot backend)
+  * @param model neural network
+  * @param replayMemoryManager strategy for filling replay memory
+  * @param trainDataConverter converter for creating training data from performed steps
+  * @param collisionCost amount of energy loss for a collision
   */
 class DRLAgent(model: Model,
                replayMemoryManager: ReplayMemoryManager,
-               trainDataConverter: TrainDataConverter) {
-
-  /** amount of energy loss for a collision */
-  val collisionCost = -40
+               trainDataConverter: TrainDataConverter,
+               collisionCost: Int = 40) {
 
   private val trainListeners = List(new PerformanceListener(1000))
 
@@ -88,7 +90,7 @@ class DRLAgent(model: Model,
 
 
   def remember(state: State, move: XY, stepCount: Int, botEnergy: Int, collision: Option[XY]) {
-    val reward = calcReward(botEnergy) + collision.map(_ => collisionCost).getOrElse(0)
+    val reward = calcReward(botEnergy) - collision.map(_ => collisionCost).getOrElse(0)
 
     if (collision.isDefined) {
       collisionCount += 1

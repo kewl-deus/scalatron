@@ -51,7 +51,7 @@ class DistanceWeightedRewardSpec extends Specification with CellCodes {
       val inputParams = Map("view" -> view.cells)
       val obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg)
       val networkModel =DRLModels.createNetwork(Direction45.ALL.size, obstacleCodes.size)
-      val agent = new DRLAgent(networkModel, new DirectTransfer(40), new SimpleTrainDataConverter(1000))
+      val agent = new DRLAgent(networkModel, new DirectTransfer(40), new PredictionRewardAdjustmentDataConverter(1000))
       val bot = new DeepLearningBot(inputParams, obstacleCodes, EnvironmentInterpreters.distanceWeightedReward, agent)
 
       val state = bot.getState

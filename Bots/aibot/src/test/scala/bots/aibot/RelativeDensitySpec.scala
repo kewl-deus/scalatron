@@ -52,7 +52,7 @@ class RelativeDensitySpec extends Specification with CellCodes{
       val inputParams = Map("view" -> view.cells)
       val obstacleCodes = List('a', 'b', 'c')
       val networkModel =DRLModels.createNetwork(Direction45.ALL.size, obstacleCodes.size)
-      val agent = new DRLAgent(networkModel, new DirectTransfer(40), new SimpleTrainDataConverter(1000))
+      val agent = new DRLAgent(networkModel, new DirectTransfer(40), new PredictionRewardAdjustmentDataConverter(1000))
       val bot = new DeepLearningBot(inputParams, obstacleCodes, EnvironmentInterpreters.relativeDensity, agent)
 
       val relDensityVector = bot.getState

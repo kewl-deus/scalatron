@@ -92,7 +92,7 @@ object EnvironmentInterpreters extends CellCodes {
     }
 
     obstacleCodes.map ( code =>
-      cells.find(ob => ob.code == code).map(cell => calcReward(cell.code, cell.position.stepCount)).getOrElse(0d)
+      cells.find(ob => ob.code == code).map(cell => calcReward(cell.code, cell.position.stepCount)).getOrElse(0d) / 1000d
     )
   }
 }
