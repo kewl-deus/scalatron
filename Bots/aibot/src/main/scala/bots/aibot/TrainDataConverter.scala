@@ -41,13 +41,11 @@ class PredictionRewardAdjustmentDataConverter(rewardAdjustmentBase: Int) extends
     if (stateTransition.reward != 0) {
       val index = stateTransition.action.toDirection45
 
-      /*
       val targetValue = target.getDouble(0L, index.longValue())
       val reward: Double = stateTransition.reward.doubleValue() / rewardAdjustmentBase.doubleValue()
       target.put(0, index, targetValue + reward)
-      */
 
-      target.put(0, index, if (stateTransition.reward > 0) 1d else 0d)
+      //target.put(0, index, if (stateTransition.reward > 0) 1d else 0d)
     }
 
     new DataSet(reshape(stateTransition.state), target)
@@ -55,7 +53,7 @@ class PredictionRewardAdjustmentDataConverter(rewardAdjustmentBase: Int) extends
 
 }
 
-class DirectRewardLastMoveDataConverter(rewardAdjustmentBase: Int) extends TrainDataConverter(rewardAdjustmentBase) {
+class DirectRewardLastMoveDataConverter extends TrainDataConverter(1) {
 
   private def zero(): Double = {
     0d
@@ -80,8 +78,8 @@ class DirectRewardLastMoveDataConverter(rewardAdjustmentBase: Int) extends Train
 
     val target = stateTransition.reward match {
       case 0 => createTarget(dirIndex, Random.nextDouble(), zero)
-      case reward: Int if (reward > 0) => createTarget(dirIndex, 1d, zero) //reward.doubleValue() / rewardAdjustmentBase.doubleValue()
-      case reward: Int if (reward < 0) => createRandomTargetButNotDirection(dirIndex) //createTarget(dirIndex, 0d, Random.nextDouble)
+      case reward: Int if (reward > 0) => createTarget(dirIndex, 1d, zero)
+      case reward: Int if (reward < 0) => createRandomTargetButNotDirection(dirIndex)
     }
 
     val labels = Nd4j.create(target.toArray, Array(1, target.length))
