@@ -14,10 +14,11 @@ import scala.util.Random
 
 /**
   * Deep Reinforced Learning Agent (= Bot backend)
-  * @param model neural network
+  *
+  * @param model               neural network
   * @param replayMemoryManager strategy for filling replay memory
-  * @param trainDataConverter converter for creating training data from performed steps
-  * @param collisionCost amount of energy loss for a collision
+  * @param trainDataConverter  converter for creating training data from performed steps
+  * @param collisionCost       amount of energy loss for a collision
   */
 class DRLAgent(model: Model,
                replayMemoryManager: ReplayMemoryManager,
@@ -53,18 +54,14 @@ class DRLAgent(model: Model,
 
   def endRound = {
     println(s"Collision count: $collisionCount")
-    println(s"Replay memory size: ${replayMemory.size}")
+    debugPrint("Replay memory: ", replayMemory)
     trainReplay
 
-    if (round % 50 == 0){
-      val timestamp = System.currentTimeMillis
-      val modelFile = new File(System.getProperty("java.io.tmpdir"), s"scalatron-dqn-network-$timestamp-$round.zip")
-      println(s"Saving model: $modelFile")
-      model.getNetwork.save(modelFile, true)
+    if (round % 50 == 0) {
+      persist
     }
 
   }
-
 
 
   def predictMove(state: State): XY = {
@@ -127,21 +124,46 @@ class DRLAgent(model: Model,
   }
 
   private def trainReplay {
-    if (replayMemory.size < 1) return
 
-    val minibatch = replayMemory.size match {
-      case x: Int if (x > 1000) => Random.shuffle(replayMemory).take(1000)
-      case _ => replayMemory
-    }
+    val positives = Random.shuffle(replayMemory.filter(t => t.reward > 0)).take(500)
+    val minibatch = Random.shuffle(replayMemory.filter(t => t.reward < 0)).take(1000 - positives.size) ++ positives
+
+    debugPrint("Train batch: ", minibatch)
 
     //minibatch.foreach(train)
 
     import scala.collection.JavaConverters._
 
     val trainData = minibatch.map(toTrainData).asJava
-    val trainDataIter = new ListDataSetIterator[DataSet](trainData, 10)
+    val trainDataIter = new ListDataSetIterator[DataSet](trainData, 50)
     model.fit(trainDataIter, 1, trainListeners)
 
     //println(model.toJson)
+  }
+
+
+  private def debugPrint(prefix: String, mem: Seq[StateTransition]): Unit = {
+    val memRewardValueCount = mem
+      .groupBy(_.reward)
+      .mapValues(_.size)
+      .toSeq
+      .sortBy(-_._1)
+      .map { case (k, v) => k + ":" + v }
+      .mkString(", ")
+    val memRewardSignumCount =  mem
+      .groupBy(_.reward.signum)
+      .mapValues(_.size)
+
+    val pos = memRewardSignumCount(1)
+    val neg = memRewardSignumCount(-1)
+
+    println(s"$prefix${mem.size} [+:$pos, -:$neg] [$memRewardValueCount]")
+  }
+
+  def persist = {
+    val timestamp = System.currentTimeMillis
+    val modelFile = new File(System.getProperty("java.io.tmpdir"), s"scalatron-dqn-network-$timestamp-$round.zip")
+    println(s"Saving model: $modelFile")
+    model.getNetwork.save(modelFile, true)
   }
 }
