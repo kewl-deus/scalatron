@@ -27,15 +27,15 @@ class ControlFunctionFactory {
 
 
 object DeepLearningBotViewAnalyzer extends ViewAnalyzer(
-  obstacleCodes = List(OccludedCell, Wall, Zugar, Toxifera, Fluppet, Snorg),
+  obstacleCodes = List(Wall, Zugar, Toxifera, Fluppet, Snorg),
   envInterpreter = EnvironmentInterpreters.obstacleBitmap
 )
 
 
 object DeepLearningBotBackend extends DRLAgent(
   model = DRLModels.createCustomNetwork(Direction45.ALL.size, DeepLearningBotViewAnalyzer.obstacleCodes.size),
-  replayMemoryManager = new DirectTransfer(20), // new ShortTermMemory(20)
-  trainDataConverter = new PredictionRewardAdjustmentDataConverter(200), //new DirectRewardLastMoveDataConverter(1), //new MarkovTrainDataConverter(500),
+  replayMemoryManager = new DirectTransfer(40), //new ShortTermMemory(20),
+  trainDataConverter =  new PredictionRewardAdjustmentDataConverter(600), //new MarkovTrainDataConverter(600), new DirectRewardLastMoveDataConverter(),
   collisionCost = 40) {
 
   //System.setProperty("org.slf4j.simpleLogger.log.org.deeplearning4j.scalnet.models.Sequential", "warn")
