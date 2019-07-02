@@ -109,6 +109,7 @@ configure(subprojects.filter { botProjects.contains(it.name) }) {
 project(":ReferenceBot") {
 	dependencies {
 		"implementation"(project(":ScalatronCore"))
+		"testImplementation"("org.specs2:specs2_2.11:3.7")
 	}
 }
 
