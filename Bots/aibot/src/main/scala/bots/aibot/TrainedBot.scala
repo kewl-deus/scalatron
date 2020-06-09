@@ -1,19 +1,14 @@
 package bots.aibot
 
 import java.io.File
-import java.util
-import java.util.{ArrayList, Iterator, List}
 
-import bots.framework.{Direction45, XY}
+import bots.framework.Direction45
 import org.apache.commons.io.FilenameUtils
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader
 import org.datavec.api.records.reader.impl.transform.TransformProcessRecordReader
 import org.datavec.api.split.FileSplit
 import org.datavec.api.transform.TransformProcess
-import org.datavec.api.transform.metadata.{ColumnMetaData, IntegerMetaData}
 import org.datavec.api.transform.schema.Schema
-import org.datavec.api.transform.transform.{BaseColumnTransform, BaseTransform}
-import org.datavec.api.writable.{IntWritable, Writable}
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator
 import org.deeplearning4j.earlystopping.saver.LocalFileModelSaver
 import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculator
@@ -21,10 +16,8 @@ import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationConditio
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingTrainer
 import org.deeplearning4j.earlystopping.{EarlyStoppingConfiguration, EarlyStoppingResult}
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.nd4j.common.io.ClassPathResource
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
-import org.nd4j.linalg.io.ClassPathResource
-
-import scala.collection.mutable
 
 class TrainedBot {
 

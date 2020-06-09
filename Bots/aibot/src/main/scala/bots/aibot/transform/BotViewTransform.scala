@@ -28,7 +28,7 @@ class BotViewTransform(column: String, viewAnalyzer: ViewAnalyzer) extends BaseT
   override def mapSequence(sequence: Any): AnyRef = null
 
   override def transform(inputSchema: Schema): Schema = {
-
+    throw new NotImplementedError("Not yet implemented")
   }
 
   override def outputColumnName(): String = column

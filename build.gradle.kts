@@ -15,7 +15,7 @@ val scalaVersion: String by extra("2.11.8") //2.12.7
 val botProjects: List<String> by extra(listOf("DeepThought", "BreadcrumbBot", "KewlBot", "ReferenceBot", "Overmind", "ScourgeOfScala"))
 
 subprojects {
- 
+
 	apply(plugin = "scala")
 
 	repositories {
@@ -115,7 +115,7 @@ project(":ReferenceBot") {
 
 project(":aibot") {
 
-	val dl4jVersion: String by extra("1.0.0-beta4")
+	val dl4jVersion: String by extra("1.0.0-beta7")
 
 	dependencies{
 		"implementation"("org.deeplearning4j:scalnet_2.11:$dl4jVersion")
